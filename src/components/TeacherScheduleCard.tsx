@@ -53,10 +53,10 @@ interface TeacherScheduleCardProps {
 }
 
 const STORAGE_KEYS = {
-  IMAGES: 'thcs_nguyen_du_schedule_images',
-  LEGACY_IMAGE: 'thcs_nguyen_du_schedule_image',
-  LEGACY_TITLE: 'thcs_nguyen_du_schedule_title',
-  LEGACY_UPDATED_AT: 'thcs_nguyen_du_schedule_updated_at',
+  IMAGES: 'thcs_nguyen_du_schedule_files_v3',
+  LEGACY_IMAGE: 'thcs_nguyen_du_schedule_image_v3',
+  LEGACY_TITLE: 'thcs_nguyen_du_schedule_title_v3',
+  LEGACY_UPDATED_AT: 'thcs_nguyen_du_schedule_updated_at_v3',
 };
 
 // Generates an SVG timetable for Morning Session
@@ -202,21 +202,21 @@ const createSampleExcelData = (): ParsedExcelSheet[] => {
       name: 'TKB Buổi Sáng (Khối 8,9)',
       rows: [
         ['TIẾT / BUỔI', 'THỨ HAI', 'THỨ BA', 'THỨ TƯ', 'THỨ NĂM', 'THỨ SÁU', 'THỨ BẢY'],
-        ['Tiết 1 (07:15 - 08:00)', '9A1 - Cô Lan (P.201)', '8A2 - Thầy Minh (P.104)', '9A3 - Cô Hương (P.203)', '9A2 - Thầy Tuấn (P.202)', '8A1 - Cô Thảo (P.103)', 'Chào cờ đầu tuần'],
-        ['Tiết 2 (08:05 - 08:50)', '9A1 - Cô Lan (P.201)', '9A3 - Cô Dung (P.203)', '8A1 - Thầy Minh (P.103)', '8A3 - Cô Mai (P.105)', '9A2 - Thầy Tuấn (P.202)', 'SH Chuyên môn'],
-        ['Tiết 3 (09:10 - 09:55)', '8A3 - Cô Thảo (P.105)', '9A1 - Cô Lan (P.201)', '9A2 - Thầy Tuấn (P.202)', '8A2 - Thầy Minh (P.104)', '9A3 - Cô Hương (P.203)', 'Tự học có GVHD'],
-        ['Tiết 4 (10:00 - 10:45)', '8A2 - Thầy Minh (P.104)', '8A1 - Cô Thảo (P.103)', '8A3 - Cô Mai (P.105)', '9A1 - Cô Lan (P.201)', 'Hoạt động trải nghiệm', 'Nghỉ'],
-        ['Tiết 5 (10:50 - 11:35)', '9A2 - Thầy Tuấn (P.202)', 'Nghỉ', '9A1 - Cô Lan (P.201)', 'Nghỉ', 'Sinh hoạt lớp cuối tuần', 'Nghỉ'],
+        ['Tiết 1 (07:15 - 08:00)', '9A1 - Thầy Hưng Đức (P.201)', '8A2 - Cô Ngọc Loan (P.104)', '9A3 - Cô Như An (P.203)', '9A2 - Cô Diệu Hiền (P.202)', '8A1 - Cô Hồng Nhung (P.103)', 'Chào cờ đầu tuần'],
+        ['Tiết 2 (08:05 - 08:50)', '9A1 - Thầy Hưng Đức (P.201)', '9A3 - Cô Như An (P.203)', '8A1 - Cô Ngọc Loan (P.103)', '8A3 - Cô Hồng Nhung (P.105)', '9A2 - Cô Diệu Hiền (P.202)', 'SH Chuyên môn'],
+        ['Tiết 3 (09:10 - 09:55)', '8A3 - Cô Hồng Nhung (P.105)', '9A1 - Cô Diệu Hiền (P.201)', '9A2 - Thầy Hưng Đức (P.202)', '8A2 - Cô Ngọc Loan (P.104)', '9A3 - Cô Như An (P.203)', 'Tự học có GVHD'],
+        ['Tiết 4 (10:00 - 10:45)', '8A2 - Cô Ngọc Loan (P.104)', '8A1 - Cô Phương Hạnh (P.103)', '8A3 - Cô Hồng Nhung (P.105)', '9A1 - Cô Diệu Hiền (P.201)', 'Hoạt động trải nghiệm', 'Nghỉ'],
+        ['Tiết 5 (10:50 - 11:35)', '9A4 - Cô Diệu Hiền (P.202)', 'Nghỉ', '9A1 - Thầy Hưng Đức (P.201)', 'Nghỉ', 'Sinh hoạt lớp cuối tuần', 'Nghỉ'],
       ],
     },
     {
       name: 'TKB Buổi Chiều (Khối 6,7)',
       rows: [
         ['TIẾT / BUỔI', 'THỨ HAI', 'THỨ BA', 'THỨ TƯ', 'THỨ NĂM', 'THỨ SÁU', 'THỨ BẢY'],
-        ['Tiết 1 (13:15 - 14:00)', '6A1 - Cô Phương (P.101)', '7A1 - Cô Hương (P.108)', '6A2 - Cô Thảo (P.102)', '7A2 - Cô Mai (P.105)', '6A3 - Cô Lan (P.104)', 'Bồi dưỡng HSG'],
-        ['Tiết 2 (14:05 - 14:50)', '6A1 - Cô Phương (P.101)', '6A3 - Cô Lan (P.104)', '7A1 - Cô Hương (P.108)', '6A2 - Cô Thảo (P.102)', '7A2 - Cô Mai (P.105)', 'Bồi dưỡng HSG'],
-        ['Tiết 3 (15:10 - 15:55)', '7A2 - Cô Mai (P.105)', '6A2 - Cô Thảo (P.102)', '6A1 - Cô Phương (P.101)', '7A1 - Cô Hương (P.108)', 'CLB Tiếng Anh', 'Nghỉ'],
-        ['Tiết 4 (16:00 - 16:45)', '6A3 - Cô Lan (P.104)', '7A2 - Cô Mai (P.105)', 'CLB Kỹ năng', '6A1 - Cô Phương (P.101)', 'Nghỉ', 'Nghỉ'],
+        ['Tiết 1 (13:15 - 14:00)', '6A1 - Cô Phương Hạnh (P.101)', '7A1 - Thầy Nguyên Bảo (P.108)', '6A2 - Cô Trịnh Hiền (P.102)', '7A4 - Cô Bích Trâm (P.105)', '6A4 - Cô Thu Hường (P.104)', 'Bồi dưỡng HSG'],
+        ['Tiết 2 (14:05 - 14:50)', '6A1 - Cô Thu Hường (P.101)', '6A3 - Cô Trịnh Hiền (P.104)', '7A2 - Thầy Nguyên Bảo (P.108)', '6A2 - Cô Phương Hạnh (P.102)', '7A5 - Cô Bích Trâm (P.105)', 'Bồi dưỡng HSG'],
+        ['Tiết 3 (15:10 - 15:55)', '7A2 - Thầy Nguyên Bảo (P.105)', '6A2 - Cô Trịnh Hiền (P.102)', '6A4 - Cô Thu Hường (P.101)', '7A6 - Cô Bích Trâm (P.108)', 'CLB Tiếng Anh', 'Nghỉ'],
+        ['Tiết 4 (16:00 - 16:45)', '6A3 - Cô Trịnh Hiền (P.104)', '7A3 - Thầy Nguyên Bảo (P.105)', 'CLB Kỹ năng', '6A5 - Cô Thu Hường (P.101)', 'Nghỉ', 'Nghỉ'],
       ],
     },
   ];
@@ -283,24 +283,24 @@ const createSampleWordHtml = (deptName: string = 'TỔ TIẾNG ANH', schoolName:
           <tbody>
             <tr>
               <td style="border: 1px solid #cbd5e1; padding: 6px; text-align: center;">1</td>
-              <td style="border: 1px solid #cbd5e1; padding: 6px; font-weight: bold;">Nguyễn Thị Mai Lan</td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px; font-weight: bold;">Bùi Hưng Đức (TT)</td>
               <td style="border: 1px solid #cbd5e1; padding: 6px;">Khối 9</td>
-              <td style="border: 1px solid #cbd5e1; padding: 6px;">9A1, 9A2</td>
-              <td style="border: 1px solid #cbd5e1; padding: 6px; text-align: center; font-weight: bold;">16</td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px;">9A1, 9A2, 9A3</td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px; text-align: center; font-weight: bold;">14</td>
             </tr>
             <tr>
               <td style="border: 1px solid #cbd5e1; padding: 6px; text-align: center;">2</td>
-              <td style="border: 1px solid #cbd5e1; padding: 6px; font-weight: bold;">Trần Văn Minh</td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px; font-weight: bold;">Phạm Thị Ngọc Loan (TP)</td>
               <td style="border: 1px solid #cbd5e1; padding: 6px;">Khối 8</td>
-              <td style="border: 1px solid #cbd5e1; padding: 6px;">8A1, 8A2</td>
-              <td style="border: 1px solid #cbd5e1; padding: 6px; text-align: center; font-weight: bold;">17</td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px;">8A1, 8A2, 8A4</td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px; text-align: center; font-weight: bold;">16</td>
             </tr>
             <tr>
               <td style="border: 1px solid #cbd5e1; padding: 6px; text-align: center;">3</td>
-              <td style="border: 1px solid #cbd5e1; padding: 6px; font-weight: bold;">Lê Thị Thu Phương</td>
-              <td style="border: 1px solid #cbd5e1; padding: 6px;">Khối 6</td>
-              <td style="border: 1px solid #cbd5e1; padding: 6px;">6A1, 6A2</td>
-              <td style="border: 1px solid #cbd5e1; padding: 6px; text-align: center; font-weight: bold;">17</td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px; font-weight: bold;">Trần Thị Diệu Hiền</td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px;">Khối 9</td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px;">9A1, 9A4, 9A5</td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px; text-align: center; font-weight: bold;">15</td>
             </tr>
           </tbody>
         </table>
@@ -338,43 +338,30 @@ export const TeacherScheduleCard: React.FC<TeacherScheduleCardProps> = ({ settin
   const [tiltStyle, setTiltStyle] = useState<React.CSSProperties>({});
   const [glarePosition, setGlarePosition] = useState<{ x: number; y: number; opacity: number }>({ x: 50, y: 50, opacity: 0 });
 
-  // Load from localStorage on mount (with legacy migration support)
+  // Load from localStorage on mount and remove all legacy schedule images
   useEffect(() => {
     try {
+      localStorage.removeItem('thcs_nguyen_du_schedule_images');
+      localStorage.removeItem('thcs_nguyen_du_schedule_image');
+      localStorage.removeItem('thcs_nguyen_du_schedule_title');
+      localStorage.removeItem('thcs_nguyen_du_schedule_updated_at');
+      localStorage.removeItem('thcs_nguyen_du_schedule_files_v2');
+
       const savedImagesJson = localStorage.getItem(STORAGE_KEYS.IMAGES);
       if (savedImagesJson) {
         const parsed = JSON.parse(savedImagesJson);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          // Normalize items with default 'image' type if undefined
-          const normalized: ScheduleItem[] = parsed.map((item) => ({
-            ...item,
-            type: item.type || 'image',
-          }));
-          setImages(normalized);
+          // Filter out any 'image' items so no images appear in TeacherScheduleCard
+          const nonImageItems: ScheduleItem[] = parsed.filter(
+            (item) => item.type === 'excel' || item.type === 'word'
+          );
+          setImages(nonImageItems);
           setActiveIndex(0);
           return;
         }
       }
-
-      // Check legacy single-image key
-      const legacyImg = localStorage.getItem(STORAGE_KEYS.LEGACY_IMAGE);
-      const legacyTitle = localStorage.getItem(STORAGE_KEYS.LEGACY_TITLE);
-      const legacyDate = localStorage.getItem(STORAGE_KEYS.LEGACY_UPDATED_AT);
-
-      if (legacyImg) {
-        const migratedItem: ScheduleItem = {
-          id: 'legacy-1',
-          type: 'image',
-          url: legacyImg,
-          title: legacyTitle || 'Thời khóa biểu giáo viên',
-          createdAt: legacyDate || 'Học kỳ I',
-          tag: 'TKB Tổ',
-        };
-        setImages([migratedItem]);
-        localStorage.setItem(STORAGE_KEYS.IMAGES, JSON.stringify([migratedItem]));
-      }
     } catch (e) {
-      console.error('Failed to load schedule images', e);
+      console.error('Failed to load schedule files', e);
     }
   }, []);
 
@@ -525,7 +512,7 @@ export const TeacherScheduleCard: React.FC<TeacherScheduleCardProps> = ({ settin
     }
   };
 
-  // Load 3D Comprehensive Sample Pack (Images + Excel + Word)
+  // Load Sample Pack (Excel + Word only, no images)
   const handleLoadSamplePack = () => {
     const dept = settings?.departmentName || 'TỔ TIẾNG ANH';
     const school = settings?.schoolName || 'TRƯỜNG THCS NGUYỄN DU';
@@ -537,25 +524,14 @@ export const TeacherScheduleCard: React.FC<TeacherScheduleCardProps> = ({ settin
       year: 'numeric',
     });
 
-    const morningSvg = createMorningTimetableSvg(dept, school);
-    const afternoonSvg = createAfternoonTimetableSvg(dept, school);
     const sampleExcelSheets = createSampleExcelData();
     const sampleWordHtml = createSampleWordHtml(dept, school);
 
     const samplePack: ScheduleItem[] = [
       {
-        id: `sample-morning-${Date.now()}`,
-        type: 'image',
-        url: morningSvg,
-        title: `TKB Sáng - Khối 8,9 (${dept})`,
-        tag: 'Buổi Sáng',
-        createdAt: nowStr,
-        fileSizeStr: '120 KB',
-      },
-      {
         id: `sample-excel-${Date.now()}`,
         type: 'excel',
-        url: morningSvg, // Preview placeholder
+        url: '',
         fileName: 'Thoi_khoa_bieu_HocKyI_2025_2026.xlsx',
         title: `Bảng Tính Excel - TKB Toàn Trường (${dept})`,
         tag: 'Bảng tính Excel',
@@ -566,7 +542,7 @@ export const TeacherScheduleCard: React.FC<TeacherScheduleCardProps> = ({ settin
       {
         id: `sample-word-${Date.now()}`,
         type: 'word',
-        url: morningSvg,
+        url: '',
         fileName: 'Ke_hoach_giang_day_TKB.docx',
         title: `Văn Bản Word - Kế Hoạch & Phân Công TKB`,
         tag: 'Văn bản Word',
@@ -574,21 +550,12 @@ export const TeacherScheduleCard: React.FC<TeacherScheduleCardProps> = ({ settin
         wordHtml: sampleWordHtml,
         fileSizeStr: '32.4 KB',
       },
-      {
-        id: `sample-afternoon-${Date.now()}`,
-        type: 'image',
-        url: afternoonSvg,
-        title: `TKB Chiều - Khối 6,7 & BD HSG (${dept})`,
-        tag: 'Buổi Chiều',
-        createdAt: nowStr,
-        fileSizeStr: '118 KB',
-      },
     ];
 
     const combined = [...images, ...samplePack];
     persistImages(combined);
     setActiveIndex(combined.length - samplePack.length);
-    toast.success('Đã nạp bộ mẫu Thời khóa biểu đa định dạng (Ảnh SVG + File Excel + File Word)!', 'Bộ TKB Mẫu');
+    toast.success('Đã nạp bộ mẫu Thời khóa biểu (File Excel + File Word)!', 'Bộ TKB Mẫu');
   };
 
   // Add via URL
@@ -1211,19 +1178,12 @@ export const TeacherScheduleCard: React.FC<TeacherScheduleCardProps> = ({ settin
               <FileSpreadsheet className="w-3 h-3" />
               <span>Thêm Excel (.xlsx)</span>
             </button>
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-bold flex items-center gap-1 transition"
-            >
-              <ImageIcon className="w-3 h-3" />
-              <span>Thêm ảnh</span>
-            </button>
           </div>
         </div>
       ) : (
         /* Empty State & Multi-upload Dropzone */
         <div
-          onClick={() => fileInputRef.current?.click()}
+          onClick={() => excelInputRef.current?.click()}
           className="group cursor-pointer border-2 border-dashed border-indigo-200 hover:border-indigo-500 rounded-2xl p-5 text-center transition-all duration-300 bg-gradient-to-b from-indigo-50/30 to-purple-50/20 hover:bg-indigo-50/60 space-y-3"
         >
           {/* 3D floating icon in empty state */}
@@ -1233,10 +1193,10 @@ export const TeacherScheduleCard: React.FC<TeacherScheduleCardProps> = ({ settin
 
           <div>
             <p className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-indigo-600 transition">
-              Đưa thời khóa biểu giáo viên lên (Hỗ trợ Ảnh, Word &amp; Excel)
+              Đưa thời khóa biểu giáo viên lên (Hỗ trợ Word &amp; Excel)
             </p>
             <p className="text-[11px] text-slate-500 mt-1 max-w-sm mx-auto leading-relaxed">
-              Kéo thả các tệp vào đây hoặc chọn: Ảnh (PNG, JPG), file Word (.docx, .doc), file Excel (.xlsx, .xls)
+              Đã xóa toàn bộ hình ảnh thời khóa biểu cũ • Chọn tệp Word (.docx, .doc) hoặc Excel (.xlsx, .xls) để tải lên
             </p>
           </div>
 
@@ -1245,14 +1205,6 @@ export const TeacherScheduleCard: React.FC<TeacherScheduleCardProps> = ({ settin
             className="flex flex-wrap items-center justify-center gap-2 pt-1"
             onClick={(e) => e.stopPropagation()}
           >
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-[0_4px_12px_rgba(79,70,229,0.3)] transition active:scale-95 cursor-pointer"
-            >
-              <Upload className="w-3.5 h-3.5" />
-              <span>Chọn nhiều tệp</span>
-            </button>
-
             <button
               onClick={() => wordInputRef.current?.click()}
               className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs transition active:scale-95 cursor-pointer"
@@ -1268,13 +1220,6 @@ export const TeacherScheduleCard: React.FC<TeacherScheduleCardProps> = ({ settin
               <FileSpreadsheet className="w-3.5 h-3.5" />
               <span>Tệp Excel (.xlsx)</span>
             </button>
-
-            <button
-              onClick={() => setIsUrlModalOpen(true)}
-              className="px-3 py-1.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl text-xs font-semibold flex items-center justify-center gap-1 transition"
-            >
-              <span>Chèn URL</span>
-            </button>
           </div>
 
           <div className="pt-2 border-t border-indigo-100" onClick={(e) => e.stopPropagation()}>
@@ -1283,7 +1228,7 @@ export const TeacherScheduleCard: React.FC<TeacherScheduleCardProps> = ({ settin
               className="text-[11px] text-indigo-600 hover:text-indigo-800 font-bold hover:underline flex items-center justify-center gap-1.5 mx-auto"
             >
               <Sparkles className="w-3.5 h-3.5 text-amber-500 animate-pulse" />
-              <span>Nạp ngay bộ TKB mẫu đa định dạng (Ảnh SVG + File Excel + File Word)</span>
+              <span>Nạp bảng tính TKB mẫu (File Excel + File Word)</span>
             </button>
           </div>
         </div>

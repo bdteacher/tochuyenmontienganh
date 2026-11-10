@@ -28,7 +28,6 @@ import {
   Teacher,
   TeacherRole,
   AcademicDegree,
-  EmulationTitle,
   LessonPlanReview,
   LessonObservation,
   SubstituteTeaching,
@@ -72,6 +71,7 @@ export const TeacherList: React.FC<TeacherListProps> = ({
 
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('all');
+  const [partyFilter, setPartyFilter] = useState<'all' | 'party' | 'nonParty'>('all');
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
 
   // Modals state
@@ -99,8 +99,12 @@ export const TeacherList: React.FC<TeacherListProps> = ({
       teacher.assignedClasses.some((c) => c.toLowerCase().includes(searchTerm.toLowerCase()));
 
     const matchesRole = roleFilter === 'all' || teacher.role === roleFilter;
+    const matchesParty =
+      partyFilter === 'all' ||
+      (partyFilter === 'party' && teacher.isPartyMember !== false) ||
+      (partyFilter === 'nonParty' && teacher.isPartyMember === false);
 
-    return matchesSearch && matchesRole;
+    return matchesSearch && matchesRole && matchesParty;
   });
 
   const getRoleBadge = (role: TeacherRole) => {
@@ -191,6 +195,90 @@ export const TeacherList: React.FC<TeacherListProps> = ({
           </div>
         </div>
 
+        {/* Quick Party Membership Classification Cards (8 Đảng viên vs 2 Không phải Đảng viên) */}
+        <div className="pt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {/* Card 1: All 10 Teachers */}
+          <button
+            type="button"
+            onClick={() => setPartyFilter('all')}
+            className={`p-3.5 rounded-xl border text-left transition flex items-center justify-between ${
+              partyFilter === 'all'
+                ? 'border-indigo-500 ring-2 ring-indigo-200 bg-indigo-50/60'
+                : 'border-slate-200 bg-slate-50/70 hover:bg-slate-100'
+            }`}
+          >
+            <div>
+              <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                Toàn bộ tổ chuyên môn
+              </div>
+              <div className="text-lg font-extrabold text-slate-900 mt-0.5">
+                Tất cả {teachers.length} Giáo viên
+              </div>
+              <div className="text-[11px] text-indigo-700 font-medium mt-0.5">
+                9 Đại học • 1 Thạc sĩ
+              </div>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-extrabold text-sm shadow-xs shrink-0">
+              {teachers.length}
+            </div>
+          </button>
+
+          {/* Card 2: 8 Party Members */}
+          <button
+            type="button"
+            onClick={() => setPartyFilter(partyFilter === 'party' ? 'all' : 'party')}
+            className={`p-3.5 rounded-xl border text-left transition flex items-center justify-between ${
+              partyFilter === 'party'
+                ? 'border-rose-500 ring-2 ring-rose-200 bg-rose-50/80'
+                : 'border-rose-200 bg-rose-50/40 hover:bg-rose-50/80'
+            }`}
+          >
+            <div className="min-w-0 pr-2">
+              <div className="text-[11px] font-extrabold uppercase tracking-wider text-rose-700 flex items-center gap-1">
+                <span>🚩 Đảng viên ĐCSVN (80%)</span>
+              </div>
+              <div className="text-lg font-extrabold text-slate-900 mt-0.5">
+                {teachers.filter((t) => t.isPartyMember !== false).length} Đảng viên
+              </div>
+              <div className="text-[11px] text-slate-600 truncate mt-0.5">
+                Thầy Bùi Hưng Đức (TT) &amp; 07 Tổ viên
+              </div>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-rose-600 text-white flex items-center justify-center font-extrabold text-base shadow-xs shrink-0">
+              🚩 {teachers.filter((t) => t.isPartyMember !== false).length}
+            </div>
+          </button>
+
+          {/* Card 3: 2 Non-Party Members */}
+          <button
+            type="button"
+            onClick={() => setPartyFilter(partyFilter === 'nonParty' ? 'all' : 'nonParty')}
+            className={`p-3.5 rounded-xl border text-left transition flex items-center justify-between ${
+              partyFilter === 'nonParty'
+                ? 'border-amber-500 ring-2 ring-amber-200 bg-amber-50/80'
+                : 'border-slate-200 bg-slate-50/70 hover:bg-amber-50/40'
+            }`}
+          >
+            <div className="min-w-0 pr-2">
+              <div className="text-[11px] font-bold uppercase tracking-wider text-slate-600">
+                👤 GV Không phải Đảng viên (20%)
+              </div>
+              <div className="text-lg font-extrabold text-slate-900 mt-0.5">
+                {teachers.filter((t) => t.isPartyMember === false).length} Giáo viên (Quần chúng)
+              </div>
+              <div className="text-[11px] text-amber-800 font-semibold truncate mt-0.5">
+                {teachers
+                  .filter((t) => t.isPartyMember === false)
+                  .map((t) => t.fullName)
+                  .join(', ')}
+              </div>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-slate-700 text-white flex items-center justify-center font-extrabold text-sm shadow-xs shrink-0">
+              {teachers.filter((t) => t.isPartyMember === false).length} GV
+            </div>
+          </button>
+        </div>
+
         {/* Filter & Search Bar */}
         <div className="pt-4 flex flex-col md:flex-row gap-3">
           <div className="relative flex-1">
@@ -218,6 +306,18 @@ export const TeacherList: React.FC<TeacherListProps> = ({
                 <option value="Tổ viên">Tổ viên (8)</option>
               </select>
             </div>
+
+            <div className="flex items-center gap-1.5 bg-rose-50/70 border border-rose-200 rounded-xl px-2.5 py-1.5">
+              <select
+                value={partyFilter}
+                onChange={(e) => setPartyFilter(e.target.value as 'all' | 'party' | 'nonParty')}
+                className="text-xs bg-transparent border-none focus:outline-none text-rose-900 font-semibold"
+              >
+                <option value="all">Đảng viên: Tất cả (8 ĐV • 2 Quần chúng)</option>
+                <option value="party">🚩 Là Đảng viên ({teachers.filter((t) => t.isPartyMember !== false).length} GV)</option>
+                <option value="nonParty">👤 Không phải Đảng viên ({teachers.filter((t) => t.isPartyMember === false).length} GV)</option>
+              </select>
+            </div>
           </div>
         </div>
       </div>
@@ -228,6 +328,7 @@ export const TeacherList: React.FC<TeacherListProps> = ({
           {filteredTeachers.map((teacher) => {
             const isHead = teacher.role === 'Tổ trưởng';
             const isDeputy = teacher.role === 'Tổ phó';
+            const isParty = teacher.isPartyMember !== false;
 
             return (
               <div
@@ -241,10 +342,10 @@ export const TeacherList: React.FC<TeacherListProps> = ({
                 }`}
               >
                 <div>
-                  {/* Card Header with Interactive Avatar */}
+                  {/* Card Header with Interactive Avatar & Party Marker Icon */}
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-3">
-                      {/* Avatar with Camera insert icon overlay */}
+                      {/* Avatar with Camera insert icon overlay + Party Member Corner Badge */}
                       <div
                         className="relative group/avatar cursor-pointer shrink-0"
                         onClick={() => setAvatarModalTeacher(teacher)}
@@ -270,6 +371,22 @@ export const TeacherList: React.FC<TeacherListProps> = ({
                           )}
                         </div>
 
+                        {/* Visual Party Marker Icon on bottom-right corner of Avatar */}
+                        <span
+                          className={`absolute -bottom-1.5 -right-1.5 w-6 h-6 rounded-full flex items-center justify-center text-[11px] shadow-md border-2 border-white ${
+                            isParty
+                              ? 'bg-rose-600 text-amber-300'
+                              : 'bg-slate-500 text-white'
+                          }`}
+                          title={
+                            isParty
+                              ? 'Đảng viên ĐCSVN'
+                              : 'Quần chúng (Không phải Đảng viên)'
+                          }
+                        >
+                          {isParty ? '🚩' : '👤'}
+                        </span>
+
                         {/* Hover Overlay Camera Badge */}
                         <div className="absolute inset-0 bg-black/50 rounded-2xl opacity-0 group-hover/avatar:opacity-100 transition flex flex-col items-center justify-center text-white text-[9px] font-bold">
                           <Camera className="w-4 h-4 mb-0.5" />
@@ -278,7 +395,7 @@ export const TeacherList: React.FC<TeacherListProps> = ({
                       </div>
 
                       <div className="min-w-0">
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1.5 flex-wrap">
                           <h3 className="font-bold text-slate-900 text-base truncate">
                             {teacher.fullName}
                           </h3>
@@ -304,12 +421,34 @@ export const TeacherList: React.FC<TeacherListProps> = ({
                     </button>
                   </div>
 
-                  {/* Role Badge & Emulation */}
-                  <div className="mt-3.5 flex flex-wrap items-center gap-2">
+                  {/* Role Badge & Party Membership Indicator */}
+                  <div className="mt-3.5 flex flex-wrap items-center gap-1.5">
                     {getRoleBadge(teacher.role)}
-                    <span className="text-xs px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 font-medium border border-slate-200">
-                      {teacher.degree}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        onUpdateTeacher({
+                          ...teacher,
+                          isPartyMember: !isParty,
+                        })
+                      }
+                      title="Bấm để chuyển đổi trạng thái Đảng viên / Không phải Đảng viên"
+                      className={`text-xs px-2.5 py-0.5 rounded-full font-bold border transition cursor-pointer ${
+                        isParty
+                          ? 'bg-rose-100 text-rose-800 border-rose-300 hover:bg-rose-200'
+                          : 'bg-slate-100 text-slate-600 border-slate-300 hover:bg-slate-200'
+                      }`}
+                    >
+                      {isParty ? '🚩 Đảng viên' : '👤 Không phải Đảng viên'}
+                    </button>
+                    <span className="text-xs px-2.5 py-0.5 rounded-full bg-sky-50 text-sky-800 font-semibold border border-sky-200">
+                      Trình độ: {teacher.degree}
                     </span>
+                    {teacher.campusOrGroup && (
+                      <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-800 font-semibold border border-indigo-200">
+                        {teacher.campusOrGroup}
+                      </span>
+                    )}
                     {teacher.homeroomClass && (
                       <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-semibold border border-emerald-200">
                         CN: {teacher.homeroomClass}
@@ -317,21 +456,26 @@ export const TeacherList: React.FC<TeacherListProps> = ({
                     )}
                   </div>
 
-                  {/* Chuyên đề tổ */}
-                  {teacher.departmentTopic && (
-                    <div className="mt-3 p-2.5 bg-indigo-50/60 rounded-xl border border-indigo-100 text-xs">
-                      <div className="text-[11px] font-bold text-indigo-900 flex items-center gap-1 mb-0.5">
-                        <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
-                        Chuyên đề tổ:
+                  {/* Additional Tasks / Detailed Responsibilities */}
+                  {teacher.additionalTasks.length > 0 && (
+                    <div className="mt-3 p-3 bg-indigo-50/40 rounded-xl border border-indigo-100/80">
+                      <div className="text-[11px] font-bold text-indigo-950 flex items-center gap-1 mb-1.5">
+                        <Briefcase className="w-3.5 h-3.5 text-indigo-600" />
+                        Nhiệm vụ &amp; Phân công phụ trách:
                       </div>
-                      <p className="text-slate-800 font-medium line-clamp-2 italic text-[11px] leading-relaxed">
-                        &ldquo;{teacher.departmentTopic}&rdquo;
-                      </p>
+                      <ul className="space-y-1 text-[11px] text-slate-700 leading-relaxed">
+                        {teacher.additionalTasks.map((task, idx) => (
+                          <li key={idx} className="flex items-start gap-1.5">
+                            <span className="text-indigo-500 font-bold mt-0.5">•</span>
+                            <span>{task}</span>
+                          </li>
+                        ))}
+                      </ul>
                     </div>
                   )}
 
                   {/* Teaching info */}
-                  <div className="mt-3 p-3 bg-slate-50 rounded-xl space-y-1.5 text-xs text-slate-700 border border-slate-100">
+                  <div className="mt-3 p-2.5 bg-slate-50 rounded-xl space-y-1 text-xs text-slate-700 border border-slate-100">
                     <div className="flex justify-between">
                       <span className="text-slate-500">Các lớp dạy:</span>
                       <span className="font-semibold text-slate-900">
@@ -348,23 +492,6 @@ export const TeacherList: React.FC<TeacherListProps> = ({
                       </span>
                     </div>
                   </div>
-
-                  {/* Additional Tasks */}
-                  {teacher.additionalTasks.length > 0 && (
-                    <div className="mt-3">
-                      <div className="text-[11px] font-semibold text-slate-500 mb-1">Kiêm nhiệm:</div>
-                      <div className="flex flex-wrap gap-1">
-                        {teacher.additionalTasks.map((task, idx) => (
-                          <span
-                            key={idx}
-                            className="text-[11px] px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-100"
-                          >
-                            {task}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
                 </div>
 
                 {/* Card Footer: Action Buttons */}
@@ -426,6 +553,7 @@ export const TeacherList: React.FC<TeacherListProps> = ({
                   <th className="px-3 py-3 w-14 text-center">Avatar</th>
                   <th className="px-4 py-3">Họ và Tên</th>
                   <th className="px-3 py-3">Chức vụ tổ</th>
+                  <th className="px-3 py-3">Đảng viên</th>
                   <th className="px-3 py-3">NTNS</th>
                   <th className="px-3 py-3">Trình độ</th>
                   <th className="px-3 py-3">Chủ nhiệm</th>
@@ -469,6 +597,17 @@ export const TeacherList: React.FC<TeacherListProps> = ({
                       </span>
                     </td>
                     <td className="px-3 py-3 whitespace-nowrap">{getRoleBadge(teacher.role)}</td>
+                    <td className="px-3 py-3 whitespace-nowrap">
+                      {teacher.isPartyMember !== false ? (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800 border border-rose-200">
+                          🚩 Đảng viên
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 text-slate-600 border border-slate-200">
+                          Chưa vào Đảng
+                        </span>
+                      )}
+                    </td>
                     <td className="px-3 py-3 font-mono text-xs whitespace-nowrap">
                       {teacher.birthDate || (teacher.birthYear ? `01/01/${teacher.birthYear}` : '-')}
                     </td>
@@ -649,6 +788,12 @@ export const TeacherList: React.FC<TeacherListProps> = ({
                   <span className="font-bold text-emerald-700">{selectedTeacher.homeroomClass || 'Không có'}</span>
                 </div>
                 <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                  <span className="text-slate-500 block">Chính trị / Đảng viên</span>
+                  <span className={`font-bold ${selectedTeacher.isPartyMember !== false ? 'text-rose-700' : 'text-slate-700'}`}>
+                    {selectedTeacher.isPartyMember !== false ? '🚩 Đảng viên ĐCSVN' : 'Chưa vào Đảng (Quần chúng)'}
+                  </span>
+                </div>
+                <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
                   <span className="text-slate-500 block">Định mức tiết chuẩn</span>
                   <span className="font-bold text-indigo-700">{selectedTeacher.standardQuota} tiết/tuần</span>
                 </div>
@@ -705,22 +850,6 @@ export const TeacherList: React.FC<TeacherListProps> = ({
                       <li key={idx}>{task}</li>
                     ))}
                   </ul>
-                </div>
-
-                <div>
-                  <h4 className="font-bold text-slate-800 flex items-center gap-1.5 mb-1.5">
-                    <Award className="w-4 h-4 text-purple-600" />
-                    Danh hiệu thi đua & Đánh giá chuẩn nghề nghiệp
-                  </h4>
-                  <div className="p-3 bg-purple-50/50 rounded-xl border border-purple-100 flex items-center justify-between">
-                    <div>
-                      <div className="font-semibold text-purple-900">{selectedTeacher.emulationTitle}</div>
-                      <div className="text-[11px] text-slate-500">
-                        Chuẩn nghề nghiệp GV: <strong>{selectedTeacher.professionalStandardRating}</strong>
-                      </div>
-                    </div>
-                    <CheckCircle className="w-5 h-5 text-purple-600" />
-                  </div>
                 </div>
               </div>
             </div>
@@ -853,10 +982,28 @@ export const TeacherList: React.FC<TeacherListProps> = ({
                     onChange={(e) => setEditingTeacher({ ...editingTeacher, degree: e.target.value as AcademicDegree })}
                     className="w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                   >
-                    <option value="Cử nhân Sư phạm">Cử nhân Sư phạm</option>
+                    <option value="Đại học">Đại học</option>
                     <option value="Thạc sĩ">Thạc sĩ</option>
+                    <option value="Cử nhân Sư phạm">Cử nhân Sư phạm</option>
                     <option value="Tiến sĩ">Tiến sĩ</option>
                     <option value="Cao đẳng Sư phạm">Cao đẳng Sư phạm</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">Đảng viên ĐCSVN</label>
+                  <select
+                    value={editingTeacher.isPartyMember !== false ? 'true' : 'false'}
+                    onChange={(e) =>
+                      setEditingTeacher({
+                        ...editingTeacher,
+                        isPartyMember: e.target.value === 'true',
+                      })
+                    }
+                    className="w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-rose-500 focus:outline-none font-semibold text-rose-800"
+                  >
+                    <option value="true">🚩 Là Đảng viên</option>
+                    <option value="false">Chưa vào Đảng (Quần chúng)</option>
                   </select>
                 </div>
 
@@ -986,36 +1133,6 @@ export const TeacherList: React.FC<TeacherListProps> = ({
                   className="w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                   placeholder="VD: Bồi dưỡng HSG, Phụ trách phòng máy, Thư ký tổ..."
                 />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Danh hiệu thi đua đăng ký</label>
-                  <select
-                    value={editingTeacher.emulationTitle}
-                    onChange={(e) => setEditingTeacher({ ...editingTeacher, emulationTitle: e.target.value as EmulationTitle })}
-                    className="w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                  >
-                    <option value="Chiến sĩ thi đua cấp cơ sở">Chiến sĩ thi đua cấp cơ sở</option>
-                    <option value="Lao động tiên tiến">Lao động tiên tiến</option>
-                    <option value="Chiến sĩ thi đua cấp Tỉnh/TP">Chiến sĩ thi đua cấp Tỉnh/TP</option>
-                    <option value="Hoàn thành tốt nhiệm vụ">Hoàn thành tốt nhiệm vụ</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Chuẩn nghề nghiệp</label>
-                  <select
-                    value={editingTeacher.professionalStandardRating}
-                    onChange={(e) => setEditingTeacher({ ...editingTeacher, professionalStandardRating: e.target.value as any })}
-                    className="w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                  >
-                    <option value="Xuất sắc">Xuất sắc</option>
-                    <option value="Tốt">Tốt</option>
-                    <option value="Khá">Khá</option>
-                    <option value="Đạt">Đạt</option>
-                  </select>
-                </div>
               </div>
 
               <div>

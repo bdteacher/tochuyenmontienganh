@@ -4,11 +4,10 @@ import {
   Users,
   BookOpenCheck,
   CalendarClock,
-  FileText,
   Eye,
   FolderCheck,
-  Award,
   HardDrive,
+  FileUp,
 } from 'lucide-react';
 
 export type TabType =
@@ -19,7 +18,7 @@ export type TabType =
   | 'meetings'
   | 'observations'
   | 'lessonPlans'
-  | 'evaluation'
+  | 'reports'
   | 'drive';
 
 interface NavigationTabsProps {
@@ -31,6 +30,7 @@ interface NavigationTabsProps {
     meetings: number;
     observations: number;
     lessonPlansPending: number;
+    reports?: number;
   };
 }
 
@@ -67,13 +67,6 @@ export const NavigationTabs: React.FC<NavigationTabsProps> = ({
       badgeColor: 'bg-amber-100 text-amber-800',
     },
     {
-      id: 'meetings' as TabType,
-      label: 'Sinh hoạt & Biên bản',
-      icon: FileText,
-      badge: counts.meetings,
-      badgeColor: 'bg-emerald-100 text-emerald-800',
-    },
-    {
       id: 'observations' as TabType,
       label: 'Dự giờ & Đánh giá',
       icon: Eye,
@@ -88,10 +81,11 @@ export const NavigationTabs: React.FC<NavigationTabsProps> = ({
       badgeColor: 'bg-purple-100 text-purple-800',
     },
     {
-      id: 'evaluation' as TabType,
-      label: 'Chuẩn nghề nghiệp & Thi đua',
-      icon: Award,
-      badge: null,
+      id: 'reports' as TabType,
+      label: 'Nộp báo cáo GV',
+      icon: FileUp,
+      badge: counts.reports !== undefined ? counts.reports : null,
+      badgeColor: 'bg-emerald-100 text-emerald-800',
     },
     {
       id: 'drive' as TabType,

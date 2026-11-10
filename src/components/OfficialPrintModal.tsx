@@ -29,6 +29,7 @@ export const OfficialPrintModal: React.FC<OfficialPrintModalProps> = ({
   if (!isOpen) return null;
 
   const headTeacher = teachers.find((t) => t.role === 'Tổ trưởng') || teachers[0];
+  const deputyHeadTeacher = teachers.find((t) => t.role === 'Tổ phó') || teachers[1];
   const totalPeriods = teachers.reduce((sum, t) => sum + t.teachingPeriodsPerWeek, 0);
   const totalStandard = teachers.reduce((sum, t) => sum + t.standardQuota, 0);
 
@@ -134,16 +135,6 @@ export const OfficialPrintModal: React.FC<OfficialPrintModalProps> = ({
             Mẫu 02: Báo cáo công tác tổ
           </button>
           <button
-            onClick={() => setDocType('meetings')}
-            className={`px-3 py-1.5 rounded-lg font-medium transition ${
-              docType === 'meetings'
-                ? 'bg-indigo-600 text-white shadow-xs'
-                : 'bg-white text-slate-700 hover:bg-slate-200'
-            }`}
-          >
-            Mẫu 03: Biên bản sinh hoạt tổ
-          </button>
-          <button
             onClick={() => setDocType('substitutes')}
             className={`px-3 py-1.5 rounded-lg font-medium transition ${
               docType === 'substitutes'
@@ -151,7 +142,7 @@ export const OfficialPrintModal: React.FC<OfficialPrintModalProps> = ({
                 : 'bg-white text-slate-700 hover:bg-slate-200'
             }`}
           >
-            Mẫu 04: Sổ dạy thay / bù
+            Mẫu 03: Sổ dạy thay / bù
           </button>
         </div>
 
@@ -273,7 +264,7 @@ export const OfficialPrintModal: React.FC<OfficialPrintModalProps> = ({
                   - Tổng số cán bộ, giáo viên trong tổ: <strong>10 đồng chí</strong>.
                 </p>
                 <p>
-                  - Cơ cấu ban lãnh đạo và thành viên: <strong>01 Tổ trưởng</strong> ({headTeacher?.fullName}), <strong>01 Tổ phó</strong> (Trần Thị Mai Lan), <strong>08 Tổ viên</strong>.
+                  - Cơ cấu ban lãnh đạo và thành viên: <strong>01 Tổ trưởng</strong> ({headTeacher?.fullName}), <strong>01 Tổ phó</strong> ({deputyHeadTeacher?.fullName || 'Phạm Thị Ngọc Loan'}), <strong>08 Tổ viên</strong>.
                 </p>
                 <p>
                   - Trình độ đào tạo: 100% đạt chuẩn và trên chuẩn (Thạc sĩ: 4 đồng chí; Cử nhân ĐH Sư phạm: 6 đồng chí).
@@ -308,41 +299,7 @@ export const OfficialPrintModal: React.FC<OfficialPrintModalProps> = ({
             </div>
           )}
 
-          {/* DOCUMENT 3: BIÊN BẢN HỌP GẦN NHẤT */}
-          {docType === 'meetings' && meetings.length > 0 && (
-            <div className="space-y-4 pt-4 text-xs">
-              <div className="text-center space-y-1">
-                <h2 className="text-base font-extrabold uppercase tracking-wide">
-                  BIÊN BẢN SINH HOẠT TỔ CHUYÊN MÔN
-                </h2>
-                <p className="font-bold text-indigo-950">{meetings[0].title}</p>
-                <p className="text-[11px] text-slate-500 italic font-sans">
-                  Số hiệu: {meetings[0].code} • Ngày họp: {meetings[0].meetingDate}
-                </p>
-              </div>
-
-              <div className="space-y-3 leading-relaxed">
-                <p><strong>Thời gian & địa điểm:</strong> {meetings[0].time}, tại {meetings[0].location}</p>
-                <p><strong>Thành phần:</strong> 10/10 giáo viên có mặt đầy đủ.</p>
-                <p><strong>Chủ trì:</strong> {teachers.find((t) => t.id === meetings[0].chairpersonId)?.fullName} (Tổ trưởng)</p>
-                <p><strong>Thư ký:</strong> {teachers.find((t) => t.id === meetings[0].secretaryId)?.fullName}</p>
-
-                <h4 className="font-bold uppercase border-b border-slate-300 pb-1 mt-3">I. Đánh giá công tác:</h4>
-                <p className="whitespace-pre-line pl-2">{meetings[0].assessmentPastWork}</p>
-
-                <h4 className="font-bold uppercase border-b border-slate-300 pb-1 mt-3">II. Kế hoạch thời gian tới:</h4>
-                <p className="whitespace-pre-line pl-2">{meetings[0].upcomingPlan}</p>
-
-                <h4 className="font-bold uppercase border-b border-slate-300 pb-1 mt-3">III. Thảo luận chuyên môn / NCBH:</h4>
-                <p className="pl-2">{meetings[0].discussionTopic}</p>
-
-                <h4 className="font-bold uppercase border-b border-slate-300 pb-1 mt-3">IV. Kết luận của Tổ trưởng:</h4>
-                <p className="whitespace-pre-line pl-2 font-medium">{meetings[0].conclusion}</p>
-              </div>
-            </div>
-          )}
-
-          {/* DOCUMENT 4: SỔ THEO DÕI DẠY THAY */}
+          {/* DOCUMENT 3: SỔ THEO DÕI DẠY THAY */}
           {docType === 'substitutes' && (
             <div className="space-y-4 pt-4 text-xs">
               <div className="text-center space-y-1">

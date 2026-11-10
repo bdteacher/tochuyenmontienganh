@@ -103,8 +103,7 @@ export const AuthRoleProvider: React.FC<AuthRoleProviderProps> = ({
       if (
         (headEmail && email === headEmail) ||
         (headTeacherEmail && email === headTeacherEmail) ||
-        email === 'bdteacher@gmail.com' ||
-        email.startsWith('hung.nguyen')
+        email === 'bdteacher@gmail.com'
       ) {
         return 'Tổ trưởng';
       }
@@ -113,8 +112,8 @@ export const AuthRoleProvider: React.FC<AuthRoleProviderProps> = ({
       return 'Tổ viên';
     }
 
-    // 4. If not logged in at all, default to Tổ viên (Read-only & request mode)
-    return 'Tổ viên';
+    // 4. Default to Tổ trưởng so user has full editing access by default
+    return 'Tổ trưởng';
   }, [roleOverride, simulatedTeacher, currentUser, settings, teachers]);
 
   const userEmail = useMemo(() => {
@@ -127,8 +126,20 @@ export const AuthRoleProvider: React.FC<AuthRoleProviderProps> = ({
     if (currentUser?.displayName) return currentUser.displayName;
     if (matchedTeacher) return matchedTeacher.fullName;
     if (simulatedTeacher) return simulatedTeacher.fullName;
-    return computedRole === 'Tổ trưởng' ? 'Thầy Nguyễn Văn Hưng (Tổ trưởng)' : 'Tổ viên THCS Nguyễn Du';
-  }, [currentUser, matchedTeacher, simulatedTeacher, computedRole]);
+    if (computedRole === 'Tổ trưởng') {
+      const headTeacher = teachers.find((t) => t.role === 'Tổ trưởng');
+      if (
+        headTeacher &&
+        headTeacher.fullName &&
+        !headTeacher.fullName.toLowerCase().includes('nguyễn văn hưng') &&
+        headTeacher.fullName !== 'Tổ trưởng chuyên môn'
+      ) {
+        return `${headTeacher.fullName} (Tổ trưởng)`;
+      }
+      return 'Tổ trưởng chuyên môn';
+    }
+    return 'Tổ viên THCS Nguyễn Du';
+  }, [currentUser, matchedTeacher, simulatedTeacher, computedRole, teachers]);
 
   const photoURL = useMemo(() => {
     if (currentUser?.photoURL) return currentUser.photoURL;

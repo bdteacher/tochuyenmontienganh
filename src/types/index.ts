@@ -1,6 +1,6 @@
 export type TeacherRole = 'Tổ trưởng' | 'Tổ phó' | 'Tổ viên';
 
-export type AcademicDegree = 'Cử nhân Sư phạm' | 'Thạc sĩ' | 'Tiến sĩ' | 'Cao đẳng Sư phạm';
+export type AcademicDegree = 'Đại học' | 'Thạc sĩ' | 'Cử nhân Sư phạm' | 'Tiến sĩ' | 'Cao đẳng Sư phạm';
 
 export type EmulationTitle = 'Chiến sĩ thi đua cấp cơ sở' | 'Lao động tiên tiến' | 'Chiến sĩ thi đua cấp Tỉnh/TP' | 'Hoàn thành tốt nhiệm vụ';
 
@@ -15,8 +15,9 @@ export interface Teacher {
   phone: string;
   email: string;
   degree: AcademicDegree;
-  majorSubject: string; // Môn chính (Toán, Tin học...)
+  majorSubject: string; // Môn chính (Tiếng Anh...)
   secondarySubject?: string;
+  campusOrGroup?: string; // VD: GV Nam - Điểm Phân hiệu, Trưởng nhóm chuyên môn Khối 9...
   departmentTopic: string; // Chuyên đề tổ (Chuyên đề chuyên môn phân công)
   teachingYears: number;
   homeroomClass?: string; // Lớp chủ nhiệm (VD: 9A1)
@@ -26,6 +27,7 @@ export interface Teacher {
   additionalTasks: string[]; // Kiêm nhiệm: Bồi dưỡng HSG, Thư ký tổ, Phụ trách phòng máy...
   emulationTitle: EmulationTitle;
   professionalStandardRating: 'Xuất sắc' | 'Tốt' | 'Khá' | 'Đạt';
+  isPartyMember?: boolean; // Đảng viên (true: Đảng viên, false: Quần chúng)
   avatarUrl?: string;
   notes?: string;
 }
@@ -85,7 +87,7 @@ export interface LessonObservation {
   className: string;
   period: number;
   lessonName: string;
-  lessonType: 'Tiết dạy thao giảng' | 'Dự giờ định kỳ' | 'Chuyên đề cụm trường' | 'Hội thi GV Giỏi';
+  lessonType: 'Tiết dạy thao giảng' | 'Dự giờ định kỳ' | 'Chuyên đề cụm trường' | 'Hội thi GV Giỏi' | 'Chuyên đề Nghiên cứu bài học';
   criteria: ObservationCriterion[];
   totalScore: number;
   rating: 'Giỏi' | 'Khá' | 'Trung bình' | 'Chưa đạt';
@@ -149,7 +151,7 @@ export interface MonthlyTaskItem {
   title: string;
   category: 'Chuyên môn' | 'Hồ sơ 5512' | 'Dự giờ NCBH' | 'Kiểm tra KSCL' | 'Bồi dưỡng HSG' | 'Chuyển đổi số';
   deadline: string;
-  assignee: string; // VD: Thầy Hưng (TT), Cô Lan (TP), Toàn tổ...
+  assignee: string; // VD: Bùi Hưng Đức (TT), Phạm Thị Ngọc Loan (TP), Toàn tổ...
   status: 'Đang thực hiện' | 'Hoàn thành' | 'Chưa bắt đầu';
   details?: string;
 }
@@ -162,4 +164,62 @@ export interface MonthlyPlan {
   tasks: MonthlyTaskItem[];
   updatedAt?: string;
 }
+
+export type TeacherReportCategory =
+  | 'Báo cáo chuyên đề / NCBH'
+  | 'Báo cáo chất lượng bộ môn'
+  | 'Báo cáo bồi dưỡng HSG / Phụ đạo'
+  | 'Báo cáo thao giảng / Dự giờ'
+  | 'Báo cáo chuyển đổi số / Học liệu'
+  | 'Báo cáo công tác chủ nhiệm / Khác';
+
+export interface TeacherReport {
+  id: string;
+  code: string; // VD: BC-2026-01
+  teacherId: string;
+  title: string;
+  category: TeacherReportCategory;
+  period: string; // VD: Tháng 10/2026, Giữa Học kỳ I
+  submissionDate: string;
+  summary: string;
+  fileName?: string;
+  fileSize?: string;
+  fileDataUrl?: string;
+  driveLink?: string;
+  status: 'Đã duyệt' | 'Chờ duyệt' | 'Yêu cầu bổ sung';
+  reviewerNote?: string;
+  reviewedAt?: string;
+}
+
+export type WeeklyEventCategory =
+  | 'Họp & SHCM'
+  | 'Kiểm tra hồ sơ'
+  | 'Dự giờ - Thao giảng'
+  | 'Bồi dưỡng HSG & CLB'
+  | 'Thi & Kiểm tra định kỳ'
+  | 'Ngoại khóa & Công đoàn';
+
+export interface WeeklyScheduleEvent {
+  id: string;
+  dayOfWeek: 'Thứ Hai' | 'Thứ Ba' | 'Thứ Tư' | 'Thứ Năm' | 'Thứ Sáu' | 'Thứ Bảy' | 'Chủ Nhật';
+  date: string; // VD: 19/10/2026
+  timeSlot: string; // VD: 14:00 - 16:30
+  title: string;
+  category: WeeklyEventCategory;
+  location: string; // VD: Điểm trường chính Nguyễn Du, Điểm Phân hiệu, Cả 2 cơ sở
+  assignee: string; // VD: Thầy Bùi Hưng Đức (TT), Cô Phạm Thị Ngọc Loan (TP)...
+  isImportant: boolean;
+  status: 'Sắp diễn ra' | 'Đang thực hiện' | 'Đã hoàn thành';
+  notes?: string;
+}
+
+export interface WeeklySchedulePlan {
+  weekNumber: number;
+  dateRange: string; // VD: 19/10/2026 - 25/10/2026
+  focusNote: string;
+  events: WeeklyScheduleEvent[];
+  updatedAt?: string;
+}
+
+
 

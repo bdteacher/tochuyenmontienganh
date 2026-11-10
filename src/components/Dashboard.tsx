@@ -14,13 +14,18 @@ import {
   UserCheck,
   HardDrive,
   Camera,
+  FileUp,
 } from 'lucide-react';
-import { Teacher, MeetingMinute, LessonObservation, SubstituteTeaching, LessonPlanReview, DepartmentSetting, MonthlyPlan } from '../types';
-import { initialMonthlyPlan } from '../data/initialData';
+import { Teacher, MeetingMinute, LessonObservation, SubstituteTeaching, LessonPlanReview, DepartmentSetting, MonthlyPlan, TeacherReport, WeeklySchedulePlan } from '../types';
+import { initialMonthlyPlan, initialWeeklySchedule } from '../data/initialData';
 import { TabType } from './NavigationTabs';
 import { TeacherScheduleCard } from './TeacherScheduleCard';
 import { AvatarUploadModal } from './AvatarUploadModal';
 import { MonthlyTaskCard } from './MonthlyTaskCard';
+import { MonthlyProgressTracker } from './MonthlyProgressTracker';
+import { TeacherQualificationChart } from './TeacherQualificationChart';
+import { PartyStructureBarChart } from './PartyStructureBarChart';
+import { WeeklyScheduleCard } from './WeeklyScheduleCard';
 
 interface DashboardProps {
   settings: DepartmentSetting;
@@ -29,8 +34,11 @@ interface DashboardProps {
   observations: LessonObservation[];
   substitutes: SubstituteTeaching[];
   lessonPlans: LessonPlanReview[];
+  reports?: TeacherReport[];
   monthlyPlan?: MonthlyPlan;
   onUpdateMonthlyPlan?: (updated: MonthlyPlan) => void;
+  weeklySchedule?: WeeklySchedulePlan;
+  onUpdateWeeklySchedule?: (updated: WeeklySchedulePlan) => void;
   onNavigate: (tab: TabType) => void;
   onOpenNewMeeting: () => void;
   onOpenNewObservation: () => void;
@@ -46,8 +54,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
   observations,
   substitutes,
   lessonPlans,
+  reports = [],
   monthlyPlan,
   onUpdateMonthlyPlan,
+  weeklySchedule,
+  onUpdateWeeklySchedule,
   onNavigate,
   onOpenNewMeeting,
   onOpenNewObservation,
@@ -78,9 +89,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const reviewedPlansCount = lessonPlans.filter((lp) => lp.status === 'Đã ký duyệt').length;
   const reviewedPercentage = Math.round((reviewedPlansCount / (lessonPlans.length || 1)) * 100);
 
-  // Recent meeting
-  const latestMeeting = meetings.length > 0 ? meetings[0] : null;
-
   return (
     <div className="space-y-6">
       {/* Welcome Banner */}
@@ -91,29 +99,29 @@ export const Dashboard: React.FC<DashboardProps> = ({
         <div className="relative z-10 max-w-3xl">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 text-amber-300 text-xs font-semibold backdrop-blur-xs mb-3 border border-white/10">
             <ShieldCheck className="w-3.5 h-3.5" />
-            Hệ thống Quản lý Chuyên môn Trường THCS Nguyễn Du
+            Hệ thống Quản lý Chuyên môn Trường THCS Nguyễn Du (Điểm chính &amp; Phân hiệu)
           </div>
           <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
             Chào mừng đến với {settings.departmentName}
           </h2>
           <p className="mt-2 text-indigo-100 text-sm leading-relaxed">
-            Năm học {settings.schoolYear} • Quản lý toàn diện nhân sự 10 giáo viên, phân công tiết dạy theo chuẩn định mức Bộ GD&ĐT, biên bản sinh hoạt tổ định kỳ 2 tuần/lần, hồ sơ kế hoạch bài dạy và dự giờ thao giảng.
+            Năm học {settings.schoolYear} • Quản lý toàn diện nhân sự 10 giáo viên tại cả 2 cơ sở, lịch công tác tuần, phân công chuyên môn 4 khối lớp (6, 7, 8, 9), hồ sơ kế hoạch bài dạy và dự giờ thao giảng.
           </p>
 
           <div className="mt-5 flex flex-wrap gap-2.5">
             <button
-              onClick={onOpenNewMeeting}
+              onClick={onOpenNewObservation}
               className="px-4 py-2 bg-amber-400 hover:bg-amber-300 text-slate-900 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm transition active:scale-95"
             >
               <PlusCircle className="w-4 h-4" />
-              <span>Ghi Biên Bản Họp Mới</span>
+              <span>Tạo Phiếu Dự Giờ</span>
             </button>
             <button
-              onClick={onOpenNewObservation}
-              className="px-4 py-2 bg-white/15 hover:bg-white/25 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 border border-white/20 transition"
+              onClick={() => onNavigate('reports')}
+              className="px-4 py-2 bg-emerald-400 hover:bg-emerald-300 text-slate-900 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm transition active:scale-95"
             >
-              <PlusCircle className="w-4 h-4 text-sky-200" />
-              <span>Tạo Phiếu Dự Giờ</span>
+              <FileUp className="w-4 h-4" />
+              <span>Nộp Báo Cáo GV</span>
             </button>
             <button
               onClick={onOpenNewSubstitute}
@@ -134,19 +142,22 @@ export const Dashboard: React.FC<DashboardProps> = ({
           className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md transition cursor-pointer group"
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500">Quy mô nhân sự</span>
+            <span className="text-xs font-medium text-slate-500">Quy mô nhân sự &amp; Đảng viên</span>
             <div className="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center group-hover:scale-110 transition">
               <Users className="w-5 h-5" />
             </div>
           </div>
           <div className="mt-3 flex items-baseline gap-2">
             <span className="text-3xl font-extrabold text-slate-900">{teachers.length}</span>
-            <span className="text-xs font-medium text-emerald-600">Giáo viên</span>
+            <span className="text-xs font-medium text-emerald-600">GV (9 ĐH • 1 ThS)</span>
           </div>
           <div className="mt-2 text-xs text-slate-500 flex items-center justify-between border-t border-slate-100 pt-2">
-            <span>1 Tổ trưởng • 1 Tổ phó</span>
+            <span className="font-bold text-rose-600">
+              🚩 {teachers.filter((t) => t.isPartyMember !== false).length} Đảng viên •{' '}
+              {teachers.filter((t) => t.isPartyMember === false).length} Quần chúng
+            </span>
             <span className="text-indigo-600 font-semibold group-hover:translate-x-0.5 transition">
-              8 Tổ viên →
+              Chi tiết →
             </span>
           </div>
         </div>
@@ -180,7 +191,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md transition cursor-pointer group"
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500">Dự giờ & Thao giảng</span>
+            <span className="text-xs font-medium text-slate-500">Dự giờ &amp; Thao giảng</span>
             <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center group-hover:scale-110 transition">
               <Award className="w-5 h-5" />
             </div>
@@ -213,7 +224,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <span className="text-xs font-medium text-purple-600">({reviewedPlansCount}/{lessonPlans.length} GV)</span>
           </div>
           <div className="mt-2 text-xs text-slate-500 flex items-center justify-between border-t border-slate-100 pt-2">
-            <span>Tuần 6 tháng 10</span>
+            <span>Kiểm tra 2 cơ sở</span>
             <span className="text-purple-600 font-semibold group-hover:translate-x-0.5 transition">
               Kiểm tra →
             </span>
@@ -225,6 +236,21 @@ export const Dashboard: React.FC<DashboardProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Structure of 10 Teachers & Key Tasks (Left 2 Columns) */}
         <div className="lg:col-span-2 space-y-4">
+          {/* Lịch Công Tác Tuần Tổ Chuyên Môn */}
+          <WeeklyScheduleCard
+            weeklySchedule={weeklySchedule || initialWeeklySchedule}
+            onUpdateWeeklySchedule={onUpdateWeeklySchedule || (() => {})}
+            teachers={teachers}
+          />
+
+          {/* Bảng Theo Dõi Tiến Độ Công Việc Hàng Tháng (Monthly Progress Tracker) */}
+          <MonthlyProgressTracker
+            monthlyPlan={monthlyPlan || initialMonthlyPlan}
+            onUpdateMonthlyPlan={onUpdateMonthlyPlan || (() => {})}
+            teachers={teachers}
+            onOpenRequestModal={onOpenRequestModal}
+          />
+
           {/* Nhiệm Vụ Trọng Tâm Tháng */}
           <MonthlyTaskCard
             monthlyPlan={monthlyPlan || initialMonthlyPlan}
@@ -238,10 +264,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
               <div>
                 <h3 className="font-bold text-slate-800 text-base flex items-center gap-2">
                   <UserCheck className="w-5 h-5 text-indigo-600" />
-                  Cơ Cấu Ban Lãnh Đạo & 8 Tổ Viên ({settings.departmentName})
+                  Cơ Cấu Ban Lãnh Đạo &amp; 8 Tổ Viên ({settings.departmentName})
                 </h3>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Phân định rõ ràng trách nhiệm • Nhấp vào ảnh để chèn / đổi avatar giáo viên
+                  Phân công nhiệm vụ 10 thành viên tại Điểm trường chính &amp; Điểm Phân hiệu • Nhấp ảnh để đổi avatar
                 </p>
               </div>
               <button
@@ -261,7 +287,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   className="p-4 rounded-xl border-2 border-amber-300/80 bg-gradient-to-br from-amber-50/50 to-orange-50/30 hover:border-amber-400 transition cursor-pointer relative"
                 >
                   <span className="absolute top-3 right-3 text-[10px] font-bold uppercase tracking-wider bg-amber-500 text-white px-2 py-0.5 rounded-full shadow-xs">
-                    Tổ Trưởng
+                    1. Tổ Trưởng
                   </span>
                   <div className="flex items-center gap-3">
                     <div
@@ -287,22 +313,36 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       </div>
                     </div>
                     <div>
-                      <h4 className="font-bold text-slate-900 text-sm flex items-center gap-1.5">
-                        {headTeacher.fullName}
+                      <h4 className="font-bold text-slate-900 text-sm flex items-center gap-1.5 flex-wrap">
+                        <span>{headTeacher.fullName}</span>
+                        {headTeacher.isPartyMember !== false ? (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-200 font-bold">
+                            🚩 Đảng viên
+                          </span>
+                        ) : (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200 font-semibold">
+                            Quần chúng
+                          </span>
+                        )}
                       </h4>
-                      <p className="text-xs text-amber-800 font-medium">{headTeacher.degree}</p>
+                      <p className="text-xs text-amber-900 font-semibold">
+                        Trình độ: {headTeacher.degree}
+                      </p>
+                      {headTeacher.campusOrGroup && (
+                        <p className="text-[11px] text-amber-800 font-medium">
+                          ({headTeacher.campusOrGroup})
+                        </p>
+                      )}
                     </div>
                   </div>
-                  <div className="mt-3 text-xs text-slate-600 space-y-1">
-                    <p>• Phụ trách chung hoạt động chuyên môn toàn tổ</p>
-                    <p>• Duyệt Kế hoạch bài dạy, chủ trì sinh hoạt tổ</p>
-                    <p>• Giảng dạy: <strong>{headTeacher.assignedClasses.join(', ')}</strong> ({headTeacher.teachingPeriodsPerWeek} tiết/tuần)</p>
-                    {headTeacher.departmentTopic && (
-                      <p className="text-[11px] text-amber-900 font-medium truncate">
-                        • CĐ: <em>{headTeacher.departmentTopic}</em>
-                      </p>
-                    )}
-                  </div>
+                  <ul className="mt-3 text-[11px] text-slate-700 space-y-1 leading-relaxed">
+                    {headTeacher.additionalTasks.map((task, idx) => (
+                      <li key={idx} className="flex items-start gap-1">
+                        <span className="text-amber-600 font-bold">•</span>
+                        <span>{task}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               )}
 
@@ -313,7 +353,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   className="p-4 rounded-xl border-2 border-indigo-200 bg-gradient-to-br from-indigo-50/40 to-sky-50/30 hover:border-indigo-300 transition cursor-pointer relative"
                 >
                   <span className="absolute top-3 right-3 text-[10px] font-bold uppercase tracking-wider bg-indigo-600 text-white px-2 py-0.5 rounded-full shadow-xs">
-                    Tổ Phó
+                    2. Tổ Phó
                   </span>
                   <div className="flex items-center gap-3">
                     <div
@@ -339,20 +379,36 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       </div>
                     </div>
                     <div>
-                      <h4 className="font-bold text-slate-900 text-sm">{deputyHeadTeacher.fullName}</h4>
-                      <p className="text-xs text-indigo-800 font-medium">{deputyHeadTeacher.degree}</p>
+                      <h4 className="font-bold text-slate-900 text-sm flex items-center gap-1.5 flex-wrap">
+                        <span>{deputyHeadTeacher.fullName}</span>
+                        {deputyHeadTeacher.isPartyMember !== false ? (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-200 font-bold">
+                            🚩 Đảng viên
+                          </span>
+                        ) : (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200 font-semibold">
+                            Chưa vào Đảng
+                          </span>
+                        )}
+                      </h4>
+                      <p className="text-xs text-indigo-900 font-semibold">
+                        Trình độ: {deputyHeadTeacher.degree}
+                      </p>
+                      {deputyHeadTeacher.campusOrGroup && (
+                        <p className="text-[11px] text-indigo-700 font-medium">
+                          ({deputyHeadTeacher.campusOrGroup})
+                        </p>
+                      )}
                     </div>
                   </div>
-                  <div className="mt-3 text-xs text-slate-600 space-y-1">
-                    <p>• Phụ trách công tác chuyên đề & Nghiên cứu bài học</p>
-                    <p>• Quản lý thiết bị, đồ dùng dạy học bộ môn</p>
-                    <p>• Giảng dạy: <strong>{deputyHeadTeacher.assignedClasses.join(', ')}</strong> ({deputyHeadTeacher.teachingPeriodsPerWeek} tiết/tuần)</p>
-                    {deputyHeadTeacher.departmentTopic && (
-                      <p className="text-[11px] text-indigo-900 font-medium truncate">
-                        • CĐ: <em>{deputyHeadTeacher.departmentTopic}</em>
-                      </p>
-                    )}
-                  </div>
+                  <ul className="mt-3 text-[11px] text-slate-700 space-y-1 leading-relaxed">
+                    {deputyHeadTeacher.additionalTasks.map((task, idx) => (
+                      <li key={idx} className="flex items-start gap-1">
+                        <span className="text-indigo-600 font-bold">•</span>
+                        <span>{task}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               )}
             </div>
@@ -360,52 +416,94 @@ export const Dashboard: React.FC<DashboardProps> = ({
             {/* 8 Members Preview */}
             <div className="mt-3">
               <div className="text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2 flex items-center justify-between">
-                <span>8 Giáo Viên Tổ Viên</span>
-                <span className="text-[11px] text-slate-500 font-normal">Giảng dạy Tiếng Anh các khối 6, 7, 8, 9 • Bấm avatar để đổi ảnh</span>
+                <span>8 Giáo Viên Tổ Viên (8/10 GV toàn tổ là Đảng viên)</span>
+                <span className="text-[11px] text-slate-500 font-normal">Bấm vào thẻ giáo viên để xem chi tiết • Bấm avatar để đổi ảnh</span>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                {memberTeachers.map((t) => (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {memberTeachers.map((t, index) => (
                   <div
                     key={t.id}
                     onClick={() => onNavigate('teachers')}
-                    className="p-2.5 rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-indigo-50/60 hover:border-indigo-200 transition cursor-pointer text-left"
+                    className="p-3 rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-indigo-50/50 hover:border-indigo-200 transition cursor-pointer text-left flex flex-col justify-between"
                   >
-                    <div className="flex items-center gap-2">
-                      <div
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setAvatarModalTeacher(t);
-                        }}
-                        className="w-8 h-8 rounded-xl overflow-hidden border border-slate-300 bg-slate-200 text-slate-700 font-semibold flex items-center justify-center text-xs shrink-0 relative group/mav cursor-pointer hover:ring-2 hover:ring-indigo-400 transition"
-                        title="Bấm để chèn / đổi avatar"
-                      >
-                        {t.avatarUrl ? (
-                          <img
-                            src={t.avatarUrl}
-                            alt={t.fullName}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          getInitials(t.fullName)
-                        )}
-                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/mav:opacity-100 flex items-center justify-center text-white transition">
-                          <Camera className="w-3.5 h-3.5" />
+                    <div>
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setAvatarModalTeacher(t);
+                            }}
+                            className="w-9 h-9 rounded-xl overflow-hidden border border-slate-300 bg-slate-200 text-slate-700 font-semibold flex items-center justify-center text-xs shrink-0 relative group/mav cursor-pointer hover:ring-2 hover:ring-indigo-400 transition"
+                            title="Bấm để chèn / đổi avatar"
+                          >
+                            {t.avatarUrl ? (
+                              <img
+                                src={t.avatarUrl}
+                                alt={t.fullName}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              getInitials(t.fullName)
+                            )}
+                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/mav:opacity-100 flex items-center justify-center text-white transition">
+                              <Camera className="w-3.5 h-3.5" />
+                            </div>
+                          </div>
+                          <div className="min-w-0">
+                            <div className="text-xs font-bold text-slate-900 flex items-center gap-1.5 flex-wrap">
+                              <span>
+                                {index + 3}. {t.fullName}
+                              </span>
+                              {t.isPartyMember !== false ? (
+                                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-200 font-bold">
+                                  🚩 Đảng viên
+                                </span>
+                              ) : (
+                                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-200/80 text-slate-700 border border-slate-300 font-semibold">
+                                  Chưa vào Đảng
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-[11px] text-slate-600 font-medium">
+                              Trình độ: <strong>{t.degree}</strong> • {t.role}
+                            </div>
+                          </div>
                         </div>
                       </div>
-                      <div className="truncate">
-                        <div className="text-xs font-bold text-slate-800 truncate">{t.fullName}</div>
-                        <div className="text-[11px] text-slate-500 truncate">{t.degree}</div>
-                      </div>
-                    </div>
-                    <div className="mt-2 text-[11px] text-slate-600 flex justify-between">
-                      <span className="truncate">{t.homeroomClass ? `CN: ${t.homeroomClass}` : 'BM'}</span>
-                      <span className="font-semibold text-indigo-700">{t.teachingPeriodsPerWeek}t</span>
+
+                      {t.campusOrGroup && (
+                        <div className="mt-1.5 inline-block px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-800 border border-indigo-100 text-[10px] font-bold">
+                          {t.campusOrGroup}
+                        </div>
+                      )}
+
+                      <ul className="mt-2 space-y-1 text-[11px] text-slate-600 leading-snug">
+                        {t.additionalTasks.map((task, tIdx) => (
+                          <li key={tIdx} className="flex items-start gap-1">
+                            <span className="text-indigo-500 font-bold">•</span>
+                            <span className="line-clamp-2">{task}</span>
+                          </li>
+                        ))}
+                      </ul>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
           </div>
+
+          {/* Biểu Đồ Cột (Recharts Bar Chart) Số Lượng Đảng Viên & GV Chưa Là Đảng Viên */}
+          <PartyStructureBarChart
+            teachers={teachers}
+            onNavigateTeachers={() => onNavigate('teachers')}
+          />
+
+          {/* Biểu Đồ Tròn (Recharts Pie Chart) Phân Bổ Trình Độ Chuyên Môn 10 Giáo Viên */}
+          <TeacherQualificationChart
+            teachers={teachers}
+            onNavigateTeachers={() => onNavigate('teachers')}
+          />
 
           {/* Teaching Load Distribution vs Standard Quota */}
           <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs">
@@ -462,45 +560,63 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
         </div>
 
-        {/* Right Column: Latest Meeting & Upcoming Tasks */}
+        {/* Right Column: Teacher Reports, Substitutions, Drive & Schedule */}
         <div className="space-y-4">
-          {/* Latest Meeting Minute */}
-          <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-bold text-slate-800 text-sm flex items-center gap-1.5">
-                <FileText className="w-4 h-4 text-emerald-600" />
-                Biên Bản Sinh Hoạt Gần Nhất
-              </h3>
+          {/* Mục Nộp Báo Cáo Của Giáo Viên */}
+          <div className="bg-white rounded-2xl border border-emerald-200/90 p-5 shadow-xs space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-xs">
+                  <FileUp className="w-4.5 h-4.5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-900 text-sm">
+                    Nộp Báo Cáo Của Giáo Viên
+                  </h3>
+                  <p className="text-[11px] text-slate-500">
+                    Đã nộp {reports.length} báo cáo chuyên môn
+                  </p>
+                </div>
+              </div>
               <button
-                onClick={() => onNavigate('meetings')}
-                className="text-xs text-emerald-600 hover:text-emerald-800 font-semibold"
+                onClick={() => onNavigate('reports')}
+                className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1 transition shadow-xs"
               >
-                Xem tất cả
+                <span>Mở &amp; Nộp</span>
+                <ArrowRight className="w-3 h-3" />
               </button>
             </div>
 
-            {latestMeeting ? (
-              <div className="p-3.5 bg-emerald-50/50 rounded-xl border border-emerald-200/60 text-xs space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-emerald-900">{latestMeeting.code}</span>
-                  <span className="text-[11px] text-slate-500 flex items-center gap-1">
-                    <Calendar className="w-3 h-3" /> {latestMeeting.meetingDate}
-                  </span>
-                </div>
-                <h4 className="font-semibold text-slate-900 line-clamp-2 transition-all duration-300 ease-in-out px-2 py-1 -mx-2 -my-1 rounded-lg hover:bg-white hover:shadow-xs hover:text-emerald-800 cursor-pointer">
-                  {latestMeeting.title}
-                </h4>
-                <p className="text-slate-600 line-clamp-3 italic">
-                  &ldquo;{latestMeeting.conclusion}&rdquo;
-                </p>
-                <div className="pt-2 border-t border-emerald-200/60 flex items-center justify-between text-slate-500 text-[11px]">
-                  <span>Tham dự: 10/10 GV</span>
-                  <span className="font-medium text-emerald-700">{latestMeeting.sessionType}</span>
-                </div>
-              </div>
-            ) : (
-              <p className="text-xs text-slate-500 italic">Chưa có biên bản nào được tạo.</p>
-            )}
+            <div className="space-y-2 pt-1">
+              {reports.slice(0, 3).map((rep) => {
+                const repTeacher = teachers.find((t) => t.id === rep.teacherId);
+                return (
+                  <div
+                    key={rep.id}
+                    onClick={() => onNavigate('reports')}
+                    className="p-2.5 rounded-xl border border-slate-200/80 bg-slate-50/80 hover:bg-emerald-50/50 hover:border-emerald-200 transition cursor-pointer text-xs"
+                  >
+                    <div className="flex items-center justify-between text-[10px] text-slate-500 mb-0.5">
+                      <span className="font-bold text-indigo-700">{repTeacher?.fullName}</span>
+                      <span
+                        className={`px-1.5 py-0.5 rounded font-bold ${
+                          rep.status === 'Đã duyệt'
+                            ? 'bg-emerald-100 text-emerald-700'
+                            : 'bg-amber-100 text-amber-700'
+                        }`}
+                      >
+                        {rep.status}
+                      </span>
+                    </div>
+                    <div className="font-semibold text-slate-800 line-clamp-1">{rep.title}</div>
+                    <div className="text-[10px] text-slate-500 mt-0.5 flex items-center justify-between">
+                      <span>{rep.category}</span>
+                      <span>{rep.submissionDate}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
           {/* Active Substitutions */}

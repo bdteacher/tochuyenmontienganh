@@ -14,6 +14,8 @@ import {
   Send,
   Lock,
   Mail,
+  Moon,
+  Sun,
 } from 'lucide-react';
 import { DepartmentSetting, Teacher } from '../types';
 import { User } from 'firebase/auth';
@@ -32,6 +34,8 @@ interface HeaderProps {
   onOpenRequestsModal?: () => void;
   pendingRequestsCount?: number;
   teachers?: Teacher[];
+  darkMode?: boolean;
+  onToggleDarkMode?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -46,6 +50,8 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenRequestsModal,
   pendingRequestsCount = 0,
   teachers = [],
+  darkMode = false,
+  onToggleDarkMode,
 }) => {
   const { role, isHead, isMember, userEmail, displayName, photoURL } = useAuthRole();
   const toast = useToast();
@@ -143,7 +149,7 @@ export const Header: React.FC<HeaderProps> = ({
               <div className="flex flex-wrap items-center gap-3 text-xs text-indigo-200 mt-0.5">
                 <span className="flex items-center gap-1.5">
                   <Users className="w-3.5 h-3.5 text-sky-300" />
-                  Cơ cấu định biên: <strong className="text-white">10 giáo viên</strong> (1 TT • 1 TP • 8 TV)
+                  Cơ cấu định biên: <strong className="text-white">10 giáo viên</strong> (8 Đảng viên • 2 Quần chúng)
                 </span>
                 <span>•</span>
                 <span className="flex items-center gap-1 text-amber-200">
@@ -156,6 +162,32 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Action Buttons */}
           <div className="flex flex-wrap items-center gap-2">
+            {/* Dark Mode Toggle Button */}
+            {onToggleDarkMode && (
+              <button
+                type="button"
+                onClick={onToggleDarkMode}
+                className={`px-3 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5 border shadow-sm transition active:scale-95 ${
+                  darkMode
+                    ? 'bg-amber-400 hover:bg-amber-300 text-slate-950 border-amber-300'
+                    : 'bg-slate-900/60 hover:bg-slate-900/80 text-amber-200 border-white/20'
+                }`}
+                title={darkMode ? 'Chuyển sang Giao diện Sáng (Light Mode)' : 'Chuyển sang Giao diện Tối (Dark Mode)'}
+              >
+                {darkMode ? (
+                  <>
+                    <Sun className="w-4 h-4 text-slate-950" />
+                    <span>Chế độ Sáng</span>
+                  </>
+                ) : (
+                  <>
+                    <Moon className="w-4 h-4 text-amber-300" />
+                    <span>Dark Mode</span>
+                  </>
+                )}
+              </button>
+            )}
+
             {/* Quick Requests Modal trigger */}
             {onOpenRequestsModal && (
               <button
@@ -375,7 +407,7 @@ export const Header: React.FC<HeaderProps> = ({
                   value={tempSettings.headOfDepartmentEmail || ''}
                   onChange={(e) => setTempSettings({ ...tempSettings, headOfDepartmentEmail: e.target.value })}
                   className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none font-mono"
-                  placeholder="VD: hung.nguyen@thcsnguyendu.edu.vn hoặc bdteacher@gmail.com"
+                  placeholder="VD: bdteacher@gmail.com"
                 />
                 <p className="text-[11px] text-slate-500 mt-1">
                   Tài khoản Google có email trùng khớp với email này sẽ tự động nhận quyền <strong>Tổ trưởng (Toàn quyền)</strong>. Các tài khoản khác sẽ có quyền <strong>Tổ viên (Chỉ xem và gửi yêu cầu)</strong>.

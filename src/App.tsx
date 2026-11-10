@@ -13,7 +13,7 @@ import { SubstituteManager } from './components/SubstituteManager';
 import { MeetingManager } from './components/MeetingManager';
 import { ObservationManager } from './components/ObservationManager';
 import { LessonPlanAudit } from './components/LessonPlanAudit';
-import { EvaluationReport } from './components/EvaluationReport';
+import { TeacherReportManager } from './components/TeacherReportManager';
 import { OfficialPrintModal } from './components/OfficialPrintModal';
 import { GoogleDriveManager } from './components/GoogleDriveManager';
 import { RolePermissionBanner } from './components/RolePermissionBanner';
@@ -33,6 +33,8 @@ import {
   saveSettings,
   saveRequests,
   saveMonthlyPlan,
+  saveTeacherReports,
+  saveWeeklySchedule,
   resetAllData,
 } from './utils/storage';
 import {
@@ -44,6 +46,8 @@ import {
   DepartmentSetting,
   DepartmentRequest,
   MonthlyPlan,
+  TeacherReport,
+  WeeklySchedulePlan,
 } from './types';
 
 interface AppShellProps {
@@ -55,6 +59,12 @@ interface AppShellProps {
   lessonPlans: LessonPlanReview[];
   requests: DepartmentRequest[];
   monthlyPlan: MonthlyPlan;
+  weeklySchedule: WeeklySchedulePlan;
+  onUpdateWeeklySchedule: (updated: WeeklySchedulePlan) => void;
+  reports: TeacherReport[];
+  onAddReport: (report: TeacherReport) => void;
+  onUpdateReport: (report: TeacherReport) => void;
+  onDeleteReport: (id: string) => void;
   onUpdateMonthlyPlan: (updated: MonthlyPlan) => void;
   onUpdateSettings: (settings: DepartmentSetting) => void;
   onUpdateTeacher: (updated: Teacher) => void;
@@ -62,7 +72,9 @@ interface AppShellProps {
   onUpdateMeeting: (meeting: MeetingMinute) => void;
   onDeleteMeeting: (id: string) => void;
   onAddObservation: (obs: LessonObservation) => void;
+  onUpdateObservation: (obs: LessonObservation) => void;
   onDeleteObservation: (id: string) => void;
+  onClearObservations: () => void;
   onAddSubstitute: (sub: SubstituteTeaching) => void;
   onUpdateSubstitute: (sub: SubstituteTeaching) => void;
   onDeleteSubstitute: (id: string) => void;
@@ -86,6 +98,12 @@ function AppShell({
   lessonPlans,
   requests,
   monthlyPlan,
+  weeklySchedule,
+  onUpdateWeeklySchedule,
+  reports,
+  onAddReport,
+  onUpdateReport,
+  onDeleteReport,
   onUpdateMonthlyPlan,
   onUpdateSettings,
   onUpdateTeacher,
@@ -93,7 +111,9 @@ function AppShell({
   onUpdateMeeting,
   onDeleteMeeting,
   onAddObservation,
+  onUpdateObservation,
   onDeleteObservation,
+  onClearObservations,
   onAddSubstitute,
   onUpdateSubstitute,
   onDeleteSubstitute,
@@ -110,12 +130,28 @@ function AppShell({
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
   const [isRequestsModalOpen, setIsRequestsModalOpen] = useState(false);
+  const [darkMode, setDarkMode] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('thcs_nguyen_du_dark_mode') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', darkMode);
+    try {
+      localStorage.setItem('thcs_nguyen_du_dark_mode', String(darkMode));
+    } catch {
+      // ignore storage errors
+    }
+  }, [darkMode]);
 
   const pendingPlansCount = lessonPlans.filter((lp) => lp.status !== 'Đã ký duyệt').length;
   const pendingRequestsCount = requests.filter((r) => r.status === 'Chờ duyệt').length;
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col text-slate-800">
+    <div className="min-h-screen bg-slate-50 flex flex-col text-slate-800 transition-colors duration-200">
       {/* Top Header with Role Status & Quick Action Buttons */}
       <Header
         settings={settings}
@@ -129,6 +165,8 @@ function AppShell({
         onOpenDriveTab={() => setActiveTab('drive')}
         onOpenRequestsModal={() => setIsRequestsModalOpen(true)}
         pendingRequestsCount={pendingRequestsCount}
+        darkMode={darkMode}
+        onToggleDarkMode={() => setDarkMode((prev) => !prev)}
       />
 
       {/* Navigation Tabs */}
@@ -141,6 +179,7 @@ function AppShell({
           meetings: meetings.length,
           observations: observations.length,
           lessonPlansPending: pendingPlansCount,
+          reports: reports.length,
         }}
       />
 
@@ -161,8 +200,11 @@ function AppShell({
             observations={observations}
             substitutes={substitutes}
             lessonPlans={lessonPlans}
+            reports={reports}
             monthlyPlan={monthlyPlan}
             onUpdateMonthlyPlan={onUpdateMonthlyPlan}
+            weeklySchedule={weeklySchedule}
+            onUpdateWeeklySchedule={onUpdateWeeklySchedule}
             onNavigate={setActiveTab}
             onOpenNewMeeting={() => setActiveTab('meetings')}
             onOpenNewObservation={() => setActiveTab('observations')}
@@ -222,7 +264,9 @@ function AppShell({
             teachers={teachers}
             observations={observations}
             onAddObservation={onAddObservation}
+            onUpdateObservation={onUpdateObservation}
             onDeleteObservation={onDeleteObservation}
+            onClearObservations={onClearObservations}
             onPrintObservation={() => setIsPrintModalOpen(true)}
           />
         )}
@@ -237,12 +281,14 @@ function AppShell({
           />
         )}
 
-        {activeTab === 'evaluation' && (
-          <EvaluationReport
+        {activeTab === 'reports' && (
+          <TeacherReportManager
             settings={settings}
             teachers={teachers}
-            onUpdateTeacher={onUpdateTeacher}
-            onOpenOfficialPrint={() => setIsPrintModalOpen(true)}
+            reports={reports}
+            onAddReport={onAddReport}
+            onUpdateReport={onUpdateReport}
+            onDeleteReport={onDeleteReport}
           />
         )}
 
@@ -311,6 +357,8 @@ function MainApp() {
   const [lessonPlans, setLessonPlans] = useState<LessonPlanReview[]>(initialData.lessonPlans);
   const [requests, setRequests] = useState<DepartmentRequest[]>(initialData.requests || []);
   const [monthlyPlan, setMonthlyPlan] = useState<MonthlyPlan>(initialData.monthlyPlan);
+  const [weeklySchedule, setWeeklySchedule] = useState<WeeklySchedulePlan>(initialData.weeklySchedule);
+  const [reports, setReports] = useState<TeacherReport[]>(initialData.reports || []);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
 
   // Initialize Firebase Auth listener for Google Drive session
@@ -361,6 +409,14 @@ function MainApp() {
     saveMonthlyPlan(monthlyPlan);
   }, [monthlyPlan]);
 
+  useEffect(() => {
+    saveWeeklySchedule(weeklySchedule);
+  }, [weeklySchedule]);
+
+  useEffect(() => {
+    saveTeacherReports(reports);
+  }, [reports]);
+
   // Settings handler
   const handleUpdateSettings = (newSettings: DepartmentSetting) => {
     setSettings(newSettings);
@@ -393,12 +449,22 @@ function MainApp() {
   const handleAddObservation = (obs: LessonObservation) => {
     setObservations((prev) => [obs, ...prev]);
     const teacher = teachers.find((t) => t.id === obs.teacherId);
-    toast.success(`Đã thêm phiếu dự giờ của GV ${teacher ? teacher.fullName : ''}`, 'Dự giờ thao giảng');
+    toast.success(`Đã thêm phiếu dự giờ môn Tiếng Anh của GV ${teacher ? teacher.fullName : ''}`, 'Dự giờ Tiếng Anh');
+  };
+
+  const handleUpdateObservation = (obs: LessonObservation) => {
+    setObservations((prev) => prev.map((o) => (o.id === obs.id ? obs : o)));
+    toast.success('Đã cập nhật phiếu dự giờ môn Tiếng Anh!', 'Cập nhật phiếu dự giờ');
   };
 
   const handleDeleteObservation = (id: string) => {
     setObservations((prev) => prev.filter((o) => o.id !== id));
-    toast.info('Đã xóa hồ sơ dự giờ thao giảng.', 'Dự giờ thao giảng');
+    toast.info('Đã xóa phiếu dự giờ.', 'Dự giờ thao giảng');
+  };
+
+  const handleClearObservations = () => {
+    setObservations([]);
+    toast.info('Đã xóa toàn bộ danh sách phiếu dự giờ.', 'Làm trống sổ dự giờ');
   };
 
   // Substitute handlers
@@ -452,6 +518,28 @@ function MainApp() {
     setMonthlyPlan(updated);
   };
 
+  // Weekly schedule handler
+  const handleUpdateWeeklySchedule = (updated: WeeklySchedulePlan) => {
+    setWeeklySchedule(updated);
+  };
+
+  // Teacher Report handlers
+  const handleAddReport = (rep: TeacherReport) => {
+    setReports((prev) => [rep, ...prev]);
+    const t = teachers.find((item) => item.id === rep.teacherId);
+    toast.success(`Đã nộp báo cáo "${rep.title}" của GV ${t?.fullName || ''}!`, 'Nộp báo cáo thành công');
+  };
+
+  const handleUpdateReport = (rep: TeacherReport) => {
+    setReports((prev) => prev.map((r) => (r.id === rep.id ? rep : r)));
+    toast.success(`Đã cập nhật báo cáo "${rep.code}"!`, 'Cập nhật báo cáo');
+  };
+
+  const handleDeleteReport = (id: string) => {
+    setReports((prev) => prev.filter((r) => r.id !== id));
+    toast.info('Đã xóa báo cáo khỏi danh sách.', 'Xóa báo cáo');
+  };
+
   // Data Export & Import
   const handleExportData = () => {
     const backup = {
@@ -463,6 +551,8 @@ function MainApp() {
       lessonPlans,
       requests,
       monthlyPlan,
+      weeklySchedule,
+      reports,
       exportDate: new Date().toISOString(),
     };
     const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(backup, null, 2));
@@ -491,6 +581,8 @@ function MainApp() {
         if (json.lessonPlans && Array.isArray(json.lessonPlans)) setLessonPlans(json.lessonPlans);
         if (json.requests && Array.isArray(json.requests)) setRequests(json.requests);
         if (json.monthlyPlan) setMonthlyPlan(json.monthlyPlan);
+        if (json.weeklySchedule) setWeeklySchedule(json.weeklySchedule);
+        if (json.reports && Array.isArray(json.reports)) setReports(json.reports);
         toast.success('Nhập dữ liệu thành công!', 'Phục hồi dữ liệu');
       } catch (err) {
         toast.error('File dữ liệu không đúng định dạng JSON.', 'Lỗi dữ liệu');
@@ -516,6 +608,8 @@ function MainApp() {
     if (data.lessonPlans && Array.isArray(data.lessonPlans)) setLessonPlans(data.lessonPlans);
     if (data.requests && Array.isArray(data.requests)) setRequests(data.requests);
     if (data.monthlyPlan) setMonthlyPlan(data.monthlyPlan);
+    if (data.weeklySchedule) setWeeklySchedule(data.weeklySchedule);
+    if (data.reports && Array.isArray(data.reports)) setReports(data.reports);
     toast.success('Đã khôi phục dữ liệu từ bản sao lưu thành công!', 'Khôi phục dữ liệu');
   };
 
@@ -534,6 +628,12 @@ function MainApp() {
         lessonPlans={lessonPlans}
         requests={requests}
         monthlyPlan={monthlyPlan}
+        weeklySchedule={weeklySchedule}
+        onUpdateWeeklySchedule={handleUpdateWeeklySchedule}
+        reports={reports}
+        onAddReport={handleAddReport}
+        onUpdateReport={handleUpdateReport}
+        onDeleteReport={handleDeleteReport}
         onUpdateMonthlyPlan={handleUpdateMonthlyPlan}
         onUpdateSettings={handleUpdateSettings}
         onUpdateTeacher={handleUpdateTeacher}
@@ -541,7 +641,9 @@ function MainApp() {
         onUpdateMeeting={handleUpdateMeeting}
         onDeleteMeeting={handleDeleteMeeting}
         onAddObservation={handleAddObservation}
+        onUpdateObservation={handleUpdateObservation}
         onDeleteObservation={handleDeleteObservation}
+        onClearObservations={handleClearObservations}
         onAddSubstitute={handleAddSubstitute}
         onUpdateSubstitute={handleUpdateSubstitute}
         onDeleteSubstitute={handleDeleteSubstitute}

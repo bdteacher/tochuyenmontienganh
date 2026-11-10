@@ -45,7 +45,7 @@ export const MONTHLY_TEMPLATES: Record<
         title: 'Xây dựng và phê duyệt Kế hoạch dạy học môn Tiếng Anh 6, 7, 8, 9',
         category: 'Hồ sơ 5512',
         deadline: '10/09/2026',
-        assignee: 'Thầy Hưng (TT) & Tổ phó',
+        assignee: 'Tổ trưởng & Tổ phó',
         status: 'Hoàn thành',
         details: 'Phân phối chương trình chi tiết theo chuẩn GDPT 2018 (Global Success & Friends Plus), tích hợp bài học STEM và hoạt động trải nghiệm.',
       },
@@ -61,7 +61,7 @@ export const MONTHLY_TEMPLATES: Record<
         title: 'Kiểm tra thiết bị phòng máy Lab ngoại ngữ và học liệu số',
         category: 'Chuyển đổi số',
         deadline: '12/09/2026',
-        assignee: 'Thầy Đức (Quản trị) & Thầy Tuấn',
+        assignee: 'Cô Phương Hạnh (Quản trị) & Thầy Nguyên Bảo',
         status: 'Hoàn thành',
         details: 'Bảo trì tai nghe, máy tính phòng Lab, cài đặt phần mềm luyện phát âm và tài khoản học liệu số cho học sinh.',
       },
@@ -69,7 +69,7 @@ export const MONTHLY_TEMPLATES: Record<
         title: 'Thành lập câu lạc bộ Tiếng Anh (English Club) và tuyển sinh',
         category: 'Chuyên môn',
         deadline: '25/09/2026',
-        assignee: 'Cô Lan (TP) & GV trẻ',
+        assignee: 'Cô Ngọc Loan (TP) & Cô Bích Trâm',
         status: 'Hoàn thành',
         details: 'Lập ban chủ nhiệm CLB, xây dựng khung sinh hoạt 2 tuần/lần với các chủ đề giao tiếp thực tế và văn hóa các nước nói tiếng Anh.',
       },
@@ -83,7 +83,7 @@ export const MONTHLY_TEMPLATES: Record<
         title: 'Duy trì nề nếp soạn giảng & Ký duyệt kế hoạch bài dạy (KHBĐ)',
         category: 'Hồ sơ 5512',
         deadline: 'Hàng tuần (Thứ Sáu)',
-        assignee: 'Thầy Hưng (TT) & Cô Lan (TP)',
+        assignee: 'Thầy Hưng Đức (TT) & Cô Ngọc Loan (TP)',
         status: 'Đang thực hiện',
         details: '100% giáo viên soạn giáo án theo đúng cấu trúc 4 hoạt động học của Công văn 5512/BGDĐT, nộp duyệt đúng hạn, chú trọng dự kiến sản phẩm của học sinh.',
       },
@@ -91,7 +91,7 @@ export const MONTHLY_TEMPLATES: Record<
         title: 'Tổ chức sinh hoạt chuyên môn theo Nghiên cứu bài học (NCBH)',
         category: 'Dự giờ NCBH',
         deadline: '20/10/2026',
-        assignee: 'Cô Lan (thể hiện) & Toàn tổ',
+        assignee: 'Cô Ngọc Loan (thể hiện) & Toàn tổ',
         status: 'Đang thực hiện',
         details: 'Dạy minh họa Unit 4 (Tiếng Anh 8) tại phòng bộ môn; tổ chức trao đổi phân tích hoạt động học tập của học sinh theo 4 tiêu chí Công văn 5555/BGDĐT.',
       },
@@ -99,7 +99,7 @@ export const MONTHLY_TEMPLATES: Record<
         title: 'Xây dựng ma trận, đặc tả và đề kiểm tra định kỳ giữa Học kỳ I',
         category: 'Kiểm tra KSCL',
         deadline: '24/10/2026',
-        assignee: 'Thầy Tuấn, Cô Hạnh & Nhóm trưởng khối',
+        assignee: 'Cô Diệu Hiền, Thầy Nguyên Bảo & Nhóm trưởng khối',
         status: 'Đang thực hiện',
         details: 'Rà soát ngân hàng câu hỏi môn Tiếng Anh 6, 7, 8, 9 đảm bảo 4 mức độ nhận thức (Nhận biết 40%, Thông hiểu 30%, Vận dụng 20%, Vận dụng cao 10%).',
       },
@@ -107,7 +107,7 @@ export const MONTHLY_TEMPLATES: Record<
         title: 'Bồi dưỡng đội tuyển HSG Tiếng Anh 9 & Phụ đạo học sinh yếu',
         category: 'Bồi dưỡng HSG',
         deadline: 'Cả tháng 10/2026',
-        assignee: 'Thầy Hưng, Thầy Nam & GV bộ môn',
+        assignee: 'Thầy Hưng Đức (TT), Cô Như An & GV bộ môn',
         status: 'Đang thực hiện',
         details: 'Luyện đề chuyên sâu 3 buổi/tuần cho đội tuyển 8 em HSG lớp 9. Đồng thời rà soát danh sách học sinh có kết quả kiểm tra thường xuyên dưới trung bình để phụ đạo.',
       },
@@ -115,7 +115,7 @@ export const MONTHLY_TEMPLATES: Record<
         title: 'Ứng dụng chuyển đổi số & Đồng bộ học liệu lên Google Drive',
         category: 'Chuyển đổi số',
         deadline: '30/10/2026',
-        assignee: 'Thầy Đức (Quản trị) & Toàn tổ',
+        assignee: 'Cô Phương Hạnh (Quản trị) & Toàn tổ',
         status: 'Hoàn thành',
         details: 'Ứng dụng Quizizz và Canva giáo dục tạo bài học tương tác; sao lưu 100% KHBĐ và biên bản sinh hoạt tổ lên thư mục Google Drive chung của tổ.',
       },
@@ -137,7 +137,7 @@ export const MONTHLY_TEMPLATES: Record<
         title: 'Kiểm tra toàn diện hồ sơ sư phạm và giờ dạy 3 giáo viên',
         category: 'Hồ sơ 5512',
         deadline: '18/11/2026',
-        assignee: 'Thầy Hưng (TT) & Ban kiểm tra',
+        assignee: 'Thầy Hưng Đức & Ban kiểm tra',
         status: 'Chưa bắt đầu',
         details: 'Kiểm tra giáo án, sổ dự giờ, sổ theo dõi đánh giá học sinh và dự 2 tiết dạy trên lớp.',
       },
@@ -145,15 +145,15 @@ export const MONTHLY_TEMPLATES: Record<
         title: 'Tổ chức Ngày hội Tiếng Anh (English Day Festival) cấp trường',
         category: 'Chuyên môn',
         deadline: '20/11/2026',
-        assignee: 'Cô Yến, Cô Mai & Nhóm Đoàn Đội',
+        assignee: 'Cô Trịnh Hiền, Cô Thu Hường & Nhóm Đoàn Đội',
         status: 'Chưa bắt đầu',
-        details: 'Thi hát tiếng Anh, đố vui Rung chuông vàng và triển lãm báo tường tri ân thầy cô bằng tiếng Anh.',
+        details: 'Thi hát tiếng Anh, đố vui Rung chuông vàng và triển lãm báo tường tri án thầy cô bằng tiếng Anh.',
       },
       {
         title: 'Bồi dưỡng học sinh giỏi chuẩn bị thi cấp Quận/Thành phố',
         category: 'Bồi dưỡng HSG',
         deadline: '28/11/2026',
-        assignee: 'Thầy Nam & Cô Trang',
+        assignee: 'Cô Như An & Thầy Hưng Đức',
         status: 'Chưa bắt đầu',
         details: 'Tăng cường luyện kỹ năng Nghe và Nói chuyên sâu theo format bài thi HSG mới.',
       },
@@ -191,7 +191,7 @@ export const MONTHLY_TEMPLATES: Record<
         title: 'Họp sơ kết công tác chuyên môn tổ Học kỳ I và xếp loại thi đua',
         category: 'Chuyên môn',
         deadline: '30/12/2026',
-        assignee: 'Thầy Hưng (TT) & Toàn tổ',
+        assignee: 'Tổ trưởng & Toàn tổ',
         status: 'Chưa bắt đầu',
         details: 'Đánh giá kết quả thực hiện chỉ tiêu đầu năm, bình xét thi đua HKI và rút kinh nghiệm chuyên môn.',
       },
@@ -205,7 +205,7 @@ export const MONTHLY_TEMPLATES: Record<
         title: 'Triển khai Kế hoạch giáo dục và thời khóa biểu Học kỳ II',
         category: 'Chuyên môn',
         deadline: '08/01/2027',
-        assignee: 'Thầy Hưng (TT) & Cô Lan (TP)',
+        assignee: 'Thầy Hưng Đức (TT) & Cô Ngọc Loan (TP)',
         status: 'Chưa bắt đầu',
         details: 'Cập nhật phân công chuyên môn, phân phối chương trình HKII và nộp sổ sách theo quy định.',
       },
@@ -213,7 +213,7 @@ export const MONTHLY_TEMPLATES: Record<
         title: 'Đưa đội tuyển tham dự kỳ thi Học sinh giỏi Tiếng Anh 9 cấp Quận',
         category: 'Bồi dưỡng HSG',
         deadline: '15/01/2027',
-        assignee: 'Thầy Hưng & Thầy Nam',
+        assignee: 'Thầy Hưng Đức & Cô Như An',
         status: 'Chưa bắt đầu',
         details: 'Chuẩn bị hồ sơ, thẻ dự thi, động viên tinh thần và hướng dẫn học sinh kỹ năng làm bài đạt giải cao.',
       },
@@ -243,7 +243,7 @@ export const MONTHLY_TEMPLATES: Record<
         title: 'Sinh hoạt NCBH chuyên đề: Rèn kỹ năng Nghe - Nói theo GDPT 2018',
         category: 'Dự giờ NCBH',
         deadline: '22/02/2027',
-        assignee: 'Thầy Tuấn (thể hiện) & Toàn tổ',
+        assignee: 'Cô Diệu Hiền (thể hiện) & Toàn tổ',
         status: 'Chưa bắt đầu',
         details: 'Tiết dạy thực nghiệm Unit 7 (Tiếng Anh 7), thảo luận kỹ thuật chuyển giao nhiệm vụ học tập theo nhóm.',
       },
@@ -251,7 +251,7 @@ export const MONTHLY_TEMPLATES: Record<
         title: 'Hướng dẫn học sinh tham gia kỳ thi IOE cấp Quận',
         category: 'Chuyển đổi số',
         deadline: '26/02/2027',
-        assignee: 'Thầy Đức & GV chủ nhiệm',
+        assignee: 'Cô Phương Hạnh & GV chủ nhiệm',
         status: 'Chưa bắt đầu',
         details: 'Chuẩn bị phòng máy, đường truyền internet ổn định cho các vòng tự luyện và thi cấp trường/quận.',
       },
@@ -295,7 +295,7 @@ export const MONTHLY_TEMPLATES: Record<
         title: 'Luyện đề thi thử vào lớp 10 môn Tiếng Anh định kỳ hàng tuần',
         category: 'Chuyên môn',
         deadline: 'Cả tháng 4/2027',
-        assignee: 'Thầy Hưng, Thầy Nam, Thầy Tuấn',
+        assignee: 'Thầy Hưng Đức, Cô Diệu Hiền, Thầy Nguyên Bảo',
         status: 'Chưa bắt đầu',
         details: 'Cho học sinh làm quen áp lực phòng thi, chấm chữa chi tiết từng lỗi sai thường gặp.',
       },
@@ -341,7 +341,7 @@ export const MONTHLY_TEMPLATES: Record<
         title: 'Họp bình xét thi đua cuối năm (LĐTT, CSTĐ cấp cơ sở)',
         category: 'Chuyên môn',
         deadline: '22/05/2027',
-        assignee: 'Thầy Hưng (TT) & Toàn tổ',
+        assignee: 'Tổ trưởng & Toàn tổ',
         status: 'Chưa bắt đầu',
         details: 'Bình xét công khai, dân chủ dựa trên kết quả giảng dạy và phong trào thi đua cả năm học.',
       },
@@ -349,7 +349,7 @@ export const MONTHLY_TEMPLATES: Record<
         title: 'Bàn giao hồ sơ chuyên môn và lưu trữ tài liệu lên Google Drive',
         category: 'Chuyển đổi số',
         deadline: '28/05/2027',
-        assignee: 'Thầy Đức & Toàn tổ',
+        assignee: 'Cô Phương Hạnh & Toàn tổ',
         status: 'Chưa bắt đầu',
         details: 'Đóng gói toàn bộ giáo án, biên bản họp tổ và đề thi nộp lưu trữ văn thư và sao lưu Drive.',
       },
@@ -1015,12 +1015,12 @@ export const MonthlyTaskCard: React.FC<MonthlyTaskCardProps> = ({
                     onChange={(e) =>
                       setQuickEditTask({ ...quickEditTask, assignee: e.target.value })
                     }
-                    placeholder="VD: Thầy Hưng (TT) & Toàn tổ"
+                    placeholder="VD: Tổ trưởng & Toàn tổ"
                     className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 font-medium"
                   />
                   {/* Quick Teacher Picker Chips */}
                   <div className="mt-1.5 flex flex-wrap gap-1">
-                    {['Toàn tổ', 'Thầy Hưng (TT)', 'Cô Lan (TP)'].map((name) => (
+                    {['Toàn tổ', 'Bùi Hưng Đức (TT)', 'Phạm Thị Ngọc Loan (TP)'].map((name) => (
                       <button
                         key={name}
                         type="button"
@@ -1346,7 +1346,7 @@ export const MonthlyTaskCard: React.FC<MonthlyTaskCardProps> = ({
                               setEditingPlan({ ...editingPlan, tasks: newTasks });
                             }}
                             className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 font-medium"
-                            placeholder="VD: Thầy Hưng (TT) & Toàn tổ"
+                            placeholder="VD: Tổ trưởng & Toàn tổ"
                           />
                         </div>
 
