@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   CalendarDays,
   Plus,
@@ -15,6 +15,7 @@ import {
   X,
   Save,
   Filter,
+  BellRing,
 } from 'lucide-react';
 import {
   WeeklySchedulePlan,
@@ -147,7 +148,78 @@ export const WeeklyScheduleCard: React.FC<WeeklyScheduleCardProps> = ({
   });
 
   const importantCount = events.filter((e) => e.isImportant).length;
+  const upcomingImportantEvents = events.filter(
+    (e) => e.isImportant && e.status !== 'Đã hoàn thành'
+  );
   const completedCount = events.filter((e) => e.status === 'Đã hoàn thành').length;
+  const hasAutoRemindedRef = useRef(false);
+
+  const triggerWeeklyReminderToasts = useCallback(
+    (isAuto = false) => {
+      const pendingImportant = (weeklySchedule.events || []).filter(
+        (e) => e.isImportant && e.status !== 'Đã hoàn thành'
+      );
+
+      if (pendingImportant.length === 0) {
+        if (!isAuto) {
+          toast.success(
+            `Tất cả các mốc quan trọng của Tuần ${weeklySchedule.weekNumber} đã hoàn thành!`,
+            `🔔 Nhắc lịch Tuần ${weeklySchedule.weekNumber}`
+          );
+        }
+        return;
+      }
+
+      if (isAuto) {
+        const previewText = pendingImportant
+          .slice(0, 2)
+          .map((ev) => `• ${ev.dayOfWeek} (${ev.timeSlot}): ${ev.title}`)
+          .join(' ');
+        const moreText =
+          pendingImportant.length > 2
+            ? ` (+${pendingImportant.length - 2} mốc quan trọng khác)`
+            : '';
+
+        toast.showToast(
+          `Tuần ${weeklySchedule.weekNumber} có ${pendingImportant.length} mốc công tác quan trọng sắp tới: ${previewText}${moreText}`,
+          'warning',
+          `🔔 Nhắc lịch công tác Tuần ${weeklySchedule.weekNumber}`,
+          6500
+        );
+      } else {
+        pendingImportant.slice(0, 4).forEach((ev, idx) => {
+          setTimeout(() => {
+            toast.showToast(
+              `${ev.title} • Phụ trách: ${ev.assignee} • Địa điểm: ${ev.location}`,
+              'warning',
+              `🔔 [${ev.dayOfWeek} • ${ev.timeSlot}] Mốc quan trọng`,
+              5500
+            );
+          }, idx * 250);
+        });
+      }
+    },
+    [weeklySchedule.events, weeklySchedule.weekNumber, toast]
+  );
+
+  // Tự động hiển thị thông báo (Toast) nhắc nhở các mốc quan trọng sắp tới khi vào Dashboard
+  useEffect(() => {
+    if (hasAutoRemindedRef.current) return;
+    hasAutoRemindedRef.current = true;
+    const timer = setTimeout(() => {
+      triggerWeeklyReminderToasts(true);
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [triggerWeeklyReminderToasts]);
+
+  const handleNotifySingleEvent = (ev: WeeklyScheduleEvent) => {
+    toast.showToast(
+      `${ev.title} • Phụ trách: ${ev.assignee} • Địa điểm: ${ev.location}`,
+      ev.isImportant ? 'warning' : 'info',
+      `🔔 Nhắc lịch: ${ev.dayOfWeek} (${ev.timeSlot})`,
+      5000
+    );
+  };
 
   const getCategoryStyle = (cat: WeeklyEventCategory) => {
     switch (cat) {
@@ -339,6 +411,16 @@ export const WeeklyScheduleCard: React.FC<WeeklyScheduleCardProps> = ({
           </div>
 
           <div className="flex flex-wrap items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => triggerWeeklyReminderToasts(false)}
+              className="px-3 py-1.5 rounded-xl bg-rose-500/90 hover:bg-rose-500 text-white text-xs font-bold flex items-center gap-1.5 border border-rose-300/40 shadow-xs transition active:scale-95"
+              title="Hiển thị thông báo (Toast) nhắc nhở các mốc công tác quan trọng sắp tới trong tuần"
+            >
+              <BellRing className="w-3.5 h-3.5 text-amber-200 animate-pulse" />
+              <span>Báo Nhắc Lịch ({upcomingImportantEvents.length})</span>
+            </button>
+
             <button
               type="button"
               onClick={() => {
@@ -608,6 +690,14 @@ export const WeeklyScheduleCard: React.FC<WeeklyScheduleCardProps> = ({
                 </button>
 
                 <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => handleNotifySingleEvent(ev)}
+                    className="p-1.5 rounded-lg bg-white border border-slate-200 text-rose-600 hover:bg-rose-50 hover:border-rose-200 transition"
+                    title="Hiển thị thông báo (Toast) nhắc nhở mốc thời gian này"
+                  >
+                    <BellRing className="w-3.5 h-3.5" />
+                  </button>
                   <button
                     type="button"
                     onClick={() => handleToggleImportant(ev)}
