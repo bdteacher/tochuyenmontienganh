@@ -173,6 +173,12 @@ export type TeacherReportCategory =
   | 'Báo cáo chuyển đổi số / Học liệu'
   | 'Báo cáo công tác chủ nhiệm / Khác';
 
+export interface TeacherReportDriveLink {
+  id: string;
+  title: string;
+  url: string;
+}
+
 export interface TeacherReport {
   id: string;
   code: string; // VD: BC-2026-01
@@ -186,6 +192,8 @@ export interface TeacherReport {
   fileSize?: string;
   fileDataUrl?: string;
   driveLink?: string;
+  driveLinkTitle?: string;
+  driveLinks?: TeacherReportDriveLink[];
   status: 'Đã duyệt' | 'Chờ duyệt' | 'Yêu cầu bổ sung';
   reviewerNote?: string;
   reviewedAt?: string;

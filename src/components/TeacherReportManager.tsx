@@ -24,11 +24,15 @@ import {
   FileSpreadsheet,
   MessageSquare,
   Send,
+  Link2,
+  HardDrive,
+  Copy,
 } from 'lucide-react';
 import {
   Teacher,
   TeacherReport,
   TeacherReportCategory,
+  TeacherReportDriveLink,
   DepartmentSetting,
 } from '../types';
 import { useAuthRole } from '../context/AuthRoleContext';
@@ -115,6 +119,11 @@ export const TeacherReportManager: React.FC<TeacherReportManagerProps> = ({
   const [editingReport, setEditingReport] = useState<TeacherReport | null>(null);
   const [reviewNoteInput, setReviewNoteInput] = useState<string>('');
 
+  // Quick Drive Link Attachment Modal state for any report row
+  const [driveModalReport, setDriveModalReport] = useState<TeacherReport | null>(null);
+  const [quickDriveTitle, setQuickDriveTitle] = useState<string>('');
+  const [quickDriveUrl, setQuickDriveUrl] = useState<string>('');
+
   // Form state for submitting/editing a report
   const [formState, setFormState] = useState<{
     teacherId: string;
@@ -127,6 +136,8 @@ export const TeacherReportManager: React.FC<TeacherReportManagerProps> = ({
     fileSize: string;
     fileDataUrl: string;
     driveLink: string;
+    driveLinkTitle: string;
+    driveLinks: TeacherReportDriveLink[];
   }>({
     teacherId: teachers[0]?.id || 'gv-01',
     title: '',
@@ -138,7 +149,105 @@ export const TeacherReportManager: React.FC<TeacherReportManagerProps> = ({
     fileSize: '',
     fileDataUrl: '',
     driveLink: '',
+    driveLinkTitle: '',
+    driveLinks: [],
   });
+
+  // Helper to get normalized list of Google Drive links for a report
+  const getReportDriveLinks = (rep: TeacherReport): TeacherReportDriveLink[] => {
+    if (rep.driveLinks && rep.driveLinks.length > 0) {
+      return rep.driveLinks;
+    }
+    if (rep.driveLink && rep.driveLink.trim()) {
+      return [
+        {
+          id: `${rep.id}-drive-primary`,
+          title: rep.driveLinkTitle?.trim() || 'Tài liệu Google Drive đính kèm',
+          url: rep.driveLink.trim(),
+        },
+      ];
+    }
+    return [];
+  };
+
+  const handleCopyDriveLink = (url: string, label?: string) => {
+    navigator.clipboard?.writeText(url);
+    toast.success(
+      `Đã sao chép đường dẫn "${label || url}" vào bộ nhớ tạm!`,
+      'Sao chép Link Google Drive'
+    );
+  };
+
+  const openQuickDriveModal = (rep: TeacherReport) => {
+    setDriveModalReport(rep);
+    setQuickDriveTitle(rep.driveLinkTitle || `Tài liệu minh chứng (${rep.code})`);
+    setQuickDriveUrl('');
+  };
+
+  const handleAddDriveLinkToReport = (targetReport: TeacherReport, titleInput: string, urlInput: string) => {
+    const cleanUrl = urlInput.trim();
+    if (!cleanUrl) {
+      toast.warning('Vui lòng dán đường dẫn (URL) tài liệu Google Drive.', 'Thiếu đường dẫn');
+      return;
+    }
+    const formattedUrl =
+      cleanUrl.startsWith('http://') || cleanUrl.startsWith('https://')
+        ? cleanUrl
+        : `https://${cleanUrl}`;
+    const cleanTitle =
+      titleInput.trim() ||
+      (formattedUrl.includes('spreadsheets')
+        ? 'Bảng tính Google Sheets'
+        : formattedUrl.includes('document')
+        ? 'Tài liệu Google Docs'
+        : formattedUrl.includes('folders')
+        ? 'Thư mục Google Drive'
+        : 'Tài liệu Google Drive');
+
+    const existingLinks = getReportDriveLinks(targetReport);
+    const newItem: TeacherReportDriveLink = {
+      id: `drv-${Date.now()}`,
+      title: cleanTitle,
+      url: formattedUrl,
+    };
+    const nextLinks = [...existingLinks, newItem];
+
+    const updated: TeacherReport = {
+      ...targetReport,
+      driveLink: nextLinks[0]?.url,
+      driveLinkTitle: nextLinks[0]?.title,
+      driveLinks: nextLinks,
+    };
+
+    onUpdateReport(updated);
+    if (viewingReport?.id === targetReport.id) {
+      setViewingReport(updated);
+    }
+    if (driveModalReport?.id === targetReport.id) {
+      setDriveModalReport(updated);
+    }
+    setQuickDriveUrl('');
+    setQuickDriveTitle('');
+    toast.success(`Đã đính kèm link Google Drive "${cleanTitle}" vào báo cáo ${targetReport.code}!`, 'Đính kèm Google Drive');
+  };
+
+  const handleRemoveDriveLinkFromReport = (targetReport: TeacherReport, linkId: string) => {
+    const nextLinks = getReportDriveLinks(targetReport).filter((item) => item.id !== linkId);
+    const updated: TeacherReport = {
+      ...targetReport,
+      driveLink: nextLinks[0]?.url || undefined,
+      driveLinkTitle: nextLinks[0]?.title || undefined,
+      driveLinks: nextLinks,
+    };
+    onUpdateReport(updated);
+    if (viewingReport?.id === targetReport.id) {
+      setViewingReport(updated);
+    }
+    if (driveModalReport?.id === targetReport.id) {
+      setDriveModalReport(updated);
+    }
+    toast.info('Đã gỡ đường dẫn Google Drive khỏi báo cáo.', 'Cập nhật Link Drive');
+  };
 
   // KPI metrics
   const totalReports = reports.length;
@@ -185,12 +294,15 @@ export const TeacherReportManager: React.FC<TeacherReportManagerProps> = ({
       fileSize: '',
       fileDataUrl: '',
       driveLink: '',
+      driveLinkTitle: '',
+      driveLinks: [],
     });
     setIsSubmitModalOpen(true);
   };
 
   const openEditReportModal = (rep: TeacherReport) => {
     setEditingReport(rep);
+    const existingLinks = getReportDriveLinks(rep);
     setFormState({
       teacherId: rep.teacherId,
       title: rep.title,
@@ -201,7 +313,9 @@ export const TeacherReportManager: React.FC<TeacherReportManagerProps> = ({
       fileName: rep.fileName || '',
       fileSize: rep.fileSize || '',
       fileDataUrl: rep.fileDataUrl || '',
-      driveLink: rep.driveLink || '',
+      driveLink: '',
+      driveLinkTitle: '',
+      driveLinks: existingLinks,
     });
     setIsSubmitModalOpen(true);
   };
@@ -240,6 +354,39 @@ export const TeacherReportManager: React.FC<TeacherReportManagerProps> = ({
     toast.info('Đã điền nội dung mẫu báo cáo. Thầy/Cô có thể chỉnh sửa thêm trước khi nộp.', 'Mẫu báo cáo nhanh');
   };
 
+  const handleAddFormDriveLink = () => {
+    const rawUrl = formState.driveLink.trim();
+    if (!rawUrl) {
+      toast.warning('Vui lòng nhập đường dẫn Google Drive trước khi bấm Thêm.', 'Thiếu đường dẫn');
+      return;
+    }
+    const formattedUrl =
+      rawUrl.startsWith('http://') || rawUrl.startsWith('https://') ? rawUrl : `https://${rawUrl}`;
+    const linkTitle =
+      formState.driveLinkTitle.trim() ||
+      (formattedUrl.includes('spreadsheets')
+        ? 'Bảng tính Google Sheets'
+        : formattedUrl.includes('document')
+        ? 'Tài liệu Google Docs'
+        : formattedUrl.includes('folders')
+        ? 'Thư mục Google Drive'
+        : 'Tài liệu Google Drive');
+
+    setFormState((prev) => ({
+      ...prev,
+      driveLinks: [
+        ...prev.driveLinks,
+        {
+          id: `drv-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+          title: linkTitle,
+          url: formattedUrl,
+        },
+      ],
+      driveLink: '',
+      driveLinkTitle: '',
+    }));
+  };
+
   const handleSubmitForm = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formState.title.trim()) {
@@ -249,6 +396,19 @@ export const TeacherReportManager: React.FC<TeacherReportManagerProps> = ({
     if (!formState.summary.trim()) {
       toast.warning('Vui lòng nhập tóm tắt nội dung hoặc kết quả báo cáo.', 'Thiếu thông tin');
       return;
+    }
+
+    // Merge any typed driveLink in the input field into driveLinks array
+    const finalDriveLinks = [...formState.driveLinks];
+    if (formState.driveLink.trim()) {
+      const rawUrl = formState.driveLink.trim();
+      const formattedUrl =
+        rawUrl.startsWith('http://') || rawUrl.startsWith('https://') ? rawUrl : `https://${rawUrl}`;
+      finalDriveLinks.push({
+        id: `drv-${Date.now()}`,
+        title: formState.driveLinkTitle.trim() || 'Tài liệu Google Drive đính kèm',
+        url: formattedUrl,
+      });
     }
 
     if (editingReport) {
@@ -263,7 +423,9 @@ export const TeacherReportManager: React.FC<TeacherReportManagerProps> = ({
         fileName: formState.fileName.trim() || undefined,
         fileSize: formState.fileSize || undefined,
         fileDataUrl: formState.fileDataUrl || undefined,
-        driveLink: formState.driveLink.trim() || undefined,
+        driveLink: finalDriveLinks[0]?.url || undefined,
+        driveLinkTitle: finalDriveLinks[0]?.title || undefined,
+        driveLinks: finalDriveLinks,
       };
       onUpdateReport(updated);
       setIsSubmitModalOpen(false);
@@ -281,7 +443,9 @@ export const TeacherReportManager: React.FC<TeacherReportManagerProps> = ({
         fileName: formState.fileName.trim() || undefined,
         fileSize: formState.fileSize || undefined,
         fileDataUrl: formState.fileDataUrl || undefined,
-        driveLink: formState.driveLink.trim() || undefined,
+        driveLink: finalDriveLinks[0]?.url || undefined,
+        driveLinkTitle: finalDriveLinks[0]?.title || undefined,
+        driveLinks: finalDriveLinks,
         status: isHead ? 'Đã duyệt' : 'Chờ duyệt',
         reviewerNote: isHead ? 'Tổ trưởng trực tiếp lập và phê duyệt lưu hồ sơ.' : undefined,
         reviewedAt: isHead ? new Date().toISOString().split('T')[0] : undefined,
@@ -586,9 +750,9 @@ export const TeacherReportManager: React.FC<TeacherReportManagerProps> = ({
                 <th className="py-3 px-3 w-44">Giáo Viên Nộp</th>
                 <th className="py-3 px-3 min-w-[260px]">Tiêu Đề &amp; Tóm Tắt Nội Dung</th>
                 <th className="py-3 px-3 w-44">Loại Báo Cáo / Kỳ</th>
-                <th className="py-3 px-3 w-40">Tệp Đính Kèm</th>
+                <th className="py-3 px-3 w-52">Tệp &amp; Link Google Drive</th>
                 <th className="py-3 px-3 w-36 text-center">Trạng Thái</th>
-                <th className="py-3 px-3 w-32 text-center">Thao Tác</th>
+                <th className="py-3 px-3 w-36 text-center">Thao Tác</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -605,6 +769,7 @@ export const TeacherReportManager: React.FC<TeacherReportManagerProps> = ({
               ) : (
                 filteredReports.map((rep) => {
                   const teacher = teachers.find((t) => t.id === rep.teacherId);
+                  const driveLinks = getReportDriveLinks(rep);
                   return (
                     <tr key={rep.id} className="hover:bg-indigo-50/30 transition">
                       <td className="py-3 px-3 font-mono font-bold text-indigo-700">
@@ -652,31 +817,60 @@ export const TeacherReportManager: React.FC<TeacherReportManagerProps> = ({
                         </div>
                       </td>
 
-                      <td className="py-3 px-3">
-                        {rep.fileName ? (
+                      <td className="py-3 px-3 space-y-1.5">
+                        {rep.fileName && (
                           <button
                             type="button"
                             onClick={() => handleDownloadAttachment(rep)}
-                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 border border-slate-200 font-medium text-[11px] max-w-[160px] truncate transition"
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 border border-slate-200 font-medium text-[11px] max-w-[190px] truncate transition"
                             title={`Tải xuống: ${rep.fileName}`}
                           >
                             <Download className="w-3 h-3 shrink-0 text-indigo-600" />
                             <span className="truncate">{rep.fileName}</span>
                           </button>
-                        ) : (
-                          <span className="text-slate-400 text-[11px] italic">Báo cáo trực tuyến</span>
                         )}
-                        {rep.driveLink && (
-                          <a
-                            href={rep.driveLink}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="mt-1 inline-flex items-center gap-1 text-[10px] text-blue-600 hover:underline font-semibold block"
-                          >
-                            <ExternalLink className="w-2.5 h-2.5" />
-                            Link Google Drive
-                          </a>
+
+                        {driveLinks.length > 0 && (
+                          <div className="space-y-1">
+                            {driveLinks.map((dItem) => (
+                              <div
+                                key={dItem.id}
+                                className="flex items-center gap-1 bg-blue-50/90 border border-blue-200 rounded-lg px-2 py-1 max-w-[200px]"
+                              >
+                                <HardDrive className="w-3 h-3 text-blue-600 shrink-0" />
+                                <a
+                                  href={dItem.url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  title={`Mở Google Drive: ${dItem.title} (${dItem.url})`}
+                                  className="text-[11px] text-blue-700 hover:underline font-bold truncate flex-1"
+                                >
+                                  {dItem.title}
+                                </a>
+                                <button
+                                  type="button"
+                                  onClick={() => handleCopyDriveLink(dItem.url, dItem.title)}
+                                  title="Sao chép link Google Drive"
+                                  className="text-blue-500 hover:text-blue-800 p-0.5 shrink-0"
+                                >
+                                  <Copy className="w-2.5 h-2.5" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
                         )}
+
+                        <button
+                          type="button"
+                          onClick={() => openQuickDriveModal(rep)}
+                          className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-white hover:bg-blue-50 text-blue-600 border border-dashed border-blue-300 text-[10px] font-bold transition"
+                          title="Đính kèm thêm hoặc quản lý Link tài liệu Google Drive của báo cáo này"
+                        >
+                          <Link2 className="w-3 h-3" />
+                          <span>
+                            {driveLinks.length > 0 ? `+ Thêm Link Drive (${driveLinks.length})` : '+ Đính kèm Link Drive'}
+                          </span>
+                        </button>
                       </td>
 
                       <td className="py-3 px-3 text-center">
@@ -711,6 +905,15 @@ export const TeacherReportManager: React.FC<TeacherReportManagerProps> = ({
 
                       <td className="py-3 px-3 text-center">
                         <div className="flex items-center justify-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => openQuickDriveModal(rep)}
+                            title="Đính kèm / Quản lý Link Google Drive"
+                            className="p-1.5 rounded-lg text-blue-600 hover:bg-blue-50 transition"
+                          >
+                            <Link2 className="w-3.5 h-3.5" />
+                          </button>
+
                           <button
                             type="button"
                             onClick={() => {
@@ -892,11 +1095,11 @@ export const TeacherReportManager: React.FC<TeacherReportManagerProps> = ({
                 />
               </div>
 
-              {/* File Upload & Google Drive Link */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+              {/* File Upload & Google Drive Links Section */}
+              <div className="space-y-3 pt-1">
                 <div>
                   <label className="font-bold text-slate-700 block mb-1">
-                    Tệp báo cáo đính kèm (Word, Excel, PDF)
+                    1. Tệp báo cáo đính kèm từ máy (Word, Excel, PDF - tùy chọn)
                   </label>
                   <input
                     ref={fileInputRef}
@@ -925,17 +1128,86 @@ export const TeacherReportManager: React.FC<TeacherReportManagerProps> = ({
                   </div>
                 </div>
 
-                <div>
-                  <label className="font-bold text-slate-700 block mb-1">
-                    Hoặc dán Link Google Drive (tùy chọn)
-                  </label>
-                  <input
-                    type="url"
-                    value={formState.driveLink}
-                    onChange={(e) => setFormState({ ...formState, driveLink: e.target.value })}
-                    placeholder="https://drive.google.com/..."
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-medium text-slate-800 focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none"
-                  />
+                {/* Google Drive Document Links Box */}
+                <div className="p-3.5 rounded-xl bg-blue-50/60 border border-blue-200/90 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <label className="font-bold text-blue-950 flex items-center gap-1.5 text-xs">
+                      <HardDrive className="w-4 h-4 text-blue-600" />
+                      <span>2. Đính kèm Link Tài Liệu Google Drive (Docs, Sheets, Slides, Thư mục)</span>
+                    </label>
+                    <span className="text-[10px] font-bold text-blue-700 bg-white px-2 py-0.5 rounded-full border border-blue-200">
+                      Đã đính kèm: {formState.driveLinks.length} link
+                    </span>
+                  </div>
+
+                  {/* List of already added Drive links in the form */}
+                  {formState.driveLinks.length > 0 && (
+                    <div className="space-y-1.5">
+                      {formState.driveLinks.map((item) => (
+                        <div
+                          key={item.id}
+                          className="flex items-center justify-between gap-2 bg-white px-3 py-1.5 rounded-lg border border-blue-200 text-xs"
+                        >
+                          <div className="flex items-center gap-2 min-w-0">
+                            <Link2 className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                            <div className="min-w-0">
+                              <div className="font-bold text-slate-800 truncate">{item.title}</div>
+                              <div className="text-[10px] text-blue-600 truncate">{item.url}</div>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setFormState((prev) => ({
+                                ...prev,
+                                driveLinks: prev.driveLinks.filter((l) => l.id !== item.id),
+                              }))
+                            }
+                            className="p-1 rounded text-rose-500 hover:bg-rose-50 shrink-0"
+                            title="Xóa link này"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-1 sm:grid-cols-12 gap-2">
+                    <div className="sm:col-span-5">
+                      <input
+                        type="text"
+                        value={formState.driveLinkTitle}
+                        onChange={(e) =>
+                          setFormState({ ...formState, driveLinkTitle: e.target.value })
+                        }
+                        placeholder="Tên tài liệu (VD: Bảng điểm Khối 9)"
+                        className="w-full px-3 py-2 bg-white border border-blue-200 rounded-xl font-medium text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none"
+                      />
+                    </div>
+                    <div className="sm:col-span-5">
+                      <input
+                        type="url"
+                        value={formState.driveLink}
+                        onChange={(e) => setFormState({ ...formState, driveLink: e.target.value })}
+                        placeholder="https://drive.google.com/..."
+                        className="w-full px-3 py-2 bg-white border border-blue-200 rounded-xl font-medium text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none"
+                      />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <button
+                        type="button"
+                        onClick={handleAddFormDriveLink}
+                        className="w-full h-full px-3 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold flex items-center justify-center gap-1 transition"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>Thêm</span>
+                      </button>
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-slate-500">
+                    Mẹo: Thầy/Cô có thể dán trực tiếp link Google Drive rồi bấm <strong>Gửi Nộp Báo Cáo</strong> hoặc bấm <strong>+ Thêm</strong> để đính kèm nhiều link tài liệu vào cùng một báo cáo.
+                  </p>
                 </div>
               </div>
 
@@ -1045,6 +1317,94 @@ export const TeacherReportManager: React.FC<TeacherReportManagerProps> = ({
               </div>
             )}
 
+            {/* Google Drive Attachments Box inside Detail Modal */}
+            <div className="p-3.5 rounded-xl bg-blue-50/60 border border-blue-200/90 space-y-2.5 text-xs">
+              <div className="flex items-center justify-between">
+                <div className="font-bold text-blue-950 flex items-center gap-1.5">
+                  <HardDrive className="w-4 h-4 text-blue-600" />
+                  <span>Tài liệu Google Drive đính kèm ({getReportDriveLinks(viewingReport).length})</span>
+                </div>
+              </div>
+
+              {getReportDriveLinks(viewingReport).length === 0 ? (
+                <p className="text-[11px] text-slate-500 italic">
+                  Chưa có link Google Drive nào được đính kèm. Thầy/Cô có thể dán link vào ô bên dưới để đính kèm ngay.
+                </p>
+              ) : (
+                <div className="space-y-1.5">
+                  {getReportDriveLinks(viewingReport).map((dLink) => (
+                    <div
+                      key={dLink.id}
+                      className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-white p-2.5 rounded-xl border border-blue-200"
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Link2 className="w-4 h-4 text-blue-600 shrink-0" />
+                        <div className="min-w-0">
+                          <div className="font-bold text-slate-900 truncate">{dLink.title}</div>
+                          <div className="text-[10px] text-blue-600 truncate">{dLink.url}</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <a
+                          href={dLink.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-[11px] inline-flex items-center gap-1 transition"
+                        >
+                          <ExternalLink className="w-3 h-3" />
+                          <span>Mở Drive</span>
+                        </a>
+                        <button
+                          type="button"
+                          onClick={() => handleCopyDriveLink(dLink.url, dLink.title)}
+                          className="px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-[11px] inline-flex items-center gap-1 transition"
+                        >
+                          <Copy className="w-3 h-3" />
+                          <span>Copy</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveDriveLinkFromReport(viewingReport, dLink.id)}
+                          className="p-1 rounded-lg text-rose-500 hover:bg-rose-50 transition"
+                          title="Xóa link Google Drive này"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Quick Add Drive Link right inside Detail View */}
+              <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 pt-1">
+                <input
+                  type="text"
+                  value={quickDriveTitle}
+                  onChange={(e) => setQuickDriveTitle(e.target.value)}
+                  placeholder="Tên tài liệu Drive..."
+                  className="sm:col-span-4 px-2.5 py-1.5 rounded-lg bg-white border border-blue-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <input
+                  type="url"
+                  value={quickDriveUrl}
+                  onChange={(e) => setQuickDriveUrl(e.target.value)}
+                  placeholder="Dán link https://drive.google.com/..."
+                  className="sm:col-span-5 px-2.5 py-1.5 rounded-lg bg-white border border-blue-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleAddDriveLinkToReport(viewingReport, quickDriveTitle, quickDriveUrl)
+                  }
+                  className="sm:col-span-3 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center justify-center gap-1 transition"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Đính kèm Link</span>
+                </button>
+              </div>
+            </div>
+
             {/* Head of Department Review Box */}
             <div className="pt-3 border-t border-slate-200 space-y-2.5 text-xs">
               <label className="font-bold text-slate-800 flex items-center gap-1.5">
@@ -1095,6 +1455,147 @@ export const TeacherReportManager: React.FC<TeacherReportManagerProps> = ({
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 3: Đính Kèm Nhanh Link Tài Liệu Google Drive Cho Báo Cáo */}
+      {driveModalReport && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-5 sm:p-6 shadow-2xl border border-slate-200 space-y-4">
+            <div className="flex items-start justify-between gap-3 pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0">
+                  <HardDrive className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-slate-900 text-sm sm:text-base">
+                    Đính Kèm Link Tài Liệu Google Drive
+                  </h3>
+                  <p className="text-[11px] text-slate-500 line-clamp-1">
+                    {driveModalReport.code} • {driveModalReport.title}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDriveModalReport(null)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Existing Drive Links */}
+            <div className="space-y-2 text-xs">
+              <div className="font-bold text-slate-700">
+                Danh sách Link Google Drive đã đính kèm ({getReportDriveLinks(driveModalReport).length}):
+              </div>
+              {getReportDriveLinks(driveModalReport).length === 0 ? (
+                <div className="p-3 rounded-xl bg-slate-50 border border-dashed border-slate-200 text-center text-slate-400 text-[11px]">
+                  Báo cáo này chưa có link Google Drive nào.
+                </div>
+              ) : (
+                <div className="space-y-1.5 max-h-44 overflow-y-auto pr-1">
+                  {getReportDriveLinks(driveModalReport).map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-blue-50/60 border border-blue-200"
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Link2 className="w-4 h-4 text-blue-600 shrink-0" />
+                        <div className="min-w-0">
+                          <div className="font-bold text-slate-900 truncate">{item.title}</div>
+                          <div className="text-[10px] text-blue-600 truncate">{item.url}</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <a
+                          href={item.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="px-2 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-[10px] inline-flex items-center gap-1"
+                        >
+                          <ExternalLink className="w-3 h-3" />
+                          <span>Mở</span>
+                        </a>
+                        <button
+                          type="button"
+                          onClick={() => handleCopyDriveLink(item.url, item.title)}
+                          className="p-1 rounded-lg bg-white border border-slate-200 text-slate-600 hover:text-slate-900"
+                          title="Sao chép link"
+                        >
+                          <Copy className="w-3 h-3" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleRemoveDriveLinkFromReport(driveModalReport, item.id)
+                          }
+                          className="p-1 rounded-lg text-rose-500 hover:bg-rose-50"
+                          title="Xóa link"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Form to add a new Drive Link */}
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleAddDriveLinkToReport(driveModalReport, quickDriveTitle, quickDriveUrl);
+              }}
+              className="space-y-3 pt-2 border-t border-slate-100 text-xs"
+            >
+              <div>
+                <label className="font-bold text-slate-700 block mb-1">
+                  Tên hiển thị tài liệu Google Drive
+                </label>
+                <input
+                  type="text"
+                  value={quickDriveTitle}
+                  onChange={(e) => setQuickDriveTitle(e.target.value)}
+                  placeholder="VD: Giáo án & Minh chứng NCBH, Bảng điểm Google Sheets..."
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-medium text-slate-800 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="font-bold text-slate-700 block mb-1">
+                  Đường dẫn (Link) Google Drive *
+                </label>
+                <input
+                  type="url"
+                  required
+                  value={quickDriveUrl}
+                  onChange={(e) => setQuickDriveUrl(e.target.value)}
+                  placeholder="https://drive.google.com/... hoặc https://docs.google.com/..."
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-medium text-slate-800 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setDriveModalReport(null)}
+                  className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-semibold"
+                >
+                  Đóng
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold flex items-center gap-1.5 shadow-xs transition"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Đính Kèm Link Drive</span>
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
